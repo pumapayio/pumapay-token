@@ -4,3 +4,5 @@
 node*
 coverage.json
 unified
+/tmp*
+/test-*

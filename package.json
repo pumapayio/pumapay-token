@@ -7,13 +7,18 @@
   "scripts": {
     "test": "scripts/test.sh",
     "coverage": "scripts/coverage.sh",
-    "unify" : "scripts/unify.sh"
+    "unify": "scripts/unify.sh"
   },
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "ganache-cli": "^6.1.0",
+    "lodash": "^4.17.5",
     "mocha": "^5.0.4",
+    "moment": "^2.22.1",
+    "save": "^2.3.2",
     "truffle": "^4.1.3",
+    "truffle-assertions": "^0.1.3",
     "web3": "^0.20.6",
     "zeppelin-solidity": "1.7.0"
   },

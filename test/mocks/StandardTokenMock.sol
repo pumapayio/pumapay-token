@@ -9,5 +9,4 @@ contract StandardTokenMock is StandardToken {
     balances[initialAccount] = initialBalance;
     totalSupply_ = initialBalance;
   }
-
 }
