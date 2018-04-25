@@ -25,6 +25,7 @@ contract RefundVault is Claimable {
 
     mapping (address => uint256) public depositedETH;
     mapping (address => uint256) public depositedToken;
+    address[] public contributorsList;
 
     address public etherWallet;
     PumaPayToken public token;
@@ -113,6 +114,7 @@ contract RefundVault is Claimable {
         unrefundedETHAmount = unrefundedETHAmount.add(msg.value);
         depositedETH[contributor] = depositedETH[contributor].add(msg.value);
         depositedToken[contributor] = depositedToken[contributor].add(tokensAmount);
+        contributorsList.push(contributor);
 
         Deposit(contributor, msg.value, tokensAmount);
         UnrefundedETHAmount(unrefundedETHAmount);
@@ -122,6 +124,7 @@ contract RefundVault is Claimable {
     /// to PUMAPAY's ether wallet specified on contract creation
     function close() isRefundingState onlyOwner isRefundTimeFrameExceeded public {
         etherWallet.transfer(unrefundedETHAmount);
+        unrefundedETHAmount = 0;
         state = State.Closed;
         Closed();
     }
@@ -165,13 +168,13 @@ contract RefundVault is Claimable {
     /// @dev Transfer tokens from the vault to the contributor while releasing proportional amount of ether to PUMAPAY's ether wallet
     /// @param tokensToClaim uint256 - Number of PUMAPAY TOKENS the contributor wants to claim
     /// Subsctracts the PUMAPAY TOKENS and ETH from the respective deposited arrays 
-    /// Can be triggerd by the contributor only
     function claimTokens(uint256 tokensToClaim) isRefundingOrCloseState public {
         require(tokensToClaim > 0);
         
         address contributor = msg.sender;
+
         require(depositedToken[contributor] > 0);
-        
+
         uint256 depositedTokenAmount = depositedToken[contributor];
         uint256 depositedETHAmount = depositedETH[contributor];
 
@@ -179,14 +182,15 @@ contract RefundVault is Claimable {
 
         uint256 claimedETH = tokensToClaim.mul(depositedETHAmount).div(depositedTokenAmount);
 
-        assert(claimedETH > 0);
-
+        require(claimedETH > 0);
+        
         depositedETH[contributor] = depositedETHAmount.sub(claimedETH);
         depositedToken[contributor] = depositedTokenAmount.sub(tokensToClaim);
 
         token.transfer(contributor, tokensToClaim);
         if(state != State.Closed) {
             unrefundedETHAmount = unrefundedETHAmount.sub(claimedETH);
+
             etherWallet.transfer(claimedETH);
         }
 
