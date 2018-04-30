@@ -8,8 +8,8 @@ import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.so
 contract PumaPayToken is MintableToken {
 
     string public name = "PumaPayToken"; 
-    string public symbol = "PUM";
-    uint public decimals = 18;
+    string public symbol = "PMA";
+    uint8 public decimals = 18;
 
     function PumaPayToken() public {
     }
