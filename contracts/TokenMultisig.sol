@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity ^0.4.19;
 
 import "./PumaPayToken.sol";
 
@@ -20,7 +20,7 @@ contract MultiSigWallet {
      /// =================================================================================================================
     ///                                      Constants
     /// =================================================================================================================
-    uint constant public MAX_OWNER_COUNT = 50;
+    uint constant public MAX_OWNER_COUNT = 2;
     uint constant public OPTION_TIME_FRAME = 120 days;
 
     /// =================================================================================================================
@@ -30,11 +30,12 @@ contract MultiSigWallet {
     mapping (uint => mapping (address => bool)) public confirmations;
     mapping (address => bool) public isOwner;
     address[] public owners;
-    uint public required;
+    uint public requiredSignatures;
     uint public transactionCount;
     uint256 public optionStartTime;
     PumaPayToken public token;
     address public superOwner;
+    uint public ownerCount;
 
     struct Transaction {
         address destination;
@@ -95,13 +96,12 @@ contract MultiSigWallet {
         _;
     }
 
-    modifier validRequirement(address superOwner, address normalOwner,uint required, PumaPayToken token) {
+    modifier validRequirement(address _superOwner, address _normalOwner, uint _requiredSignatures, PumaPayToken _token) {
         require(
-            superOwner != address(0)
-            && normalOwner != address(0)
-            && required == 2
-            && ownerCount != 0
-            && token != address(0)
+            _superOwner != address(0)
+            && _normalOwner != address(0)
+            && _requiredSignatures == 2
+            && _token != address(0)
             );
         _;
     }
@@ -111,26 +111,26 @@ contract MultiSigWallet {
     /// =================================================================================================================
 
     /// @dev Contract constructor sets initial owners and required number of confirmations.
-    /// @param _owners List of initial owners.
-    /// @param _required Number of required confirmations.
+    /// @param _superOwner Super Owner.
+    /// @param _normalOwner Normal Owner.
+    /// @param _requiredSignatures Number of required confirmations.
     /// @param _token Token Address 
-    function MultiSigWallet(address _superOwner, address _normalOwner, uint _required, PumaPayToken _token)
+    function MultiSigWallet(address _superOwner, address _normalOwner, uint _requiredSignatures, PumaPayToken _token)
         public
-        validRequirement(_superOwner, _normalOwner, _required, _token)
-    {
-        address[] storage _owners;
-        _owners.push(_superOwner);
-        _owners.push(_normalOwner);
+        validRequirement(_superOwner, _normalOwner, _requiredSignatures, _token) 
+        {
+        owners.push(_superOwner);
+        owners.push(_normalOwner);
 
-        for (uint i = 0; i < _owners.length; i++) {
-            require(!isOwner[_owners[i]] && _owners[i] != 0);
-            isOwner[_owners[i]] = true;
+        for (uint i = 0; i < owners.length; i++) {
+            require(!isOwner[owners[i]] && owners[i] != 0);
+            isOwner[owners[i]] = true;
+            ownerCount = ownerCount + 1;
         }
         optionStartTime = now;
         superOwner = _superOwner;
         token = _token; 
-        owners = _owners;
-        required = _required;
+        requiredSignatures = _requiredSignatures;
     }
 
     // =================================================================================================================
@@ -205,7 +205,7 @@ contract MultiSigWallet {
         for (uint i = 0; i < owners.length; i++) {
             if (confirmations[transactionId][owners[i]])
                 count += 1;
-            if (count == required)
+            if (count == requiredSignatures)
                 return true;
         }
     }
@@ -248,10 +248,11 @@ contract MultiSigWallet {
         constant
         returns (uint count)
     {
-        for (uint i = 0; i < owners.length; i++)
+        for (uint i = 0; i < owners.length; i++) {
             if (confirmations[transactionId][owners[i]]) {
                 count += 1;
             }
+        }
     }
 
     /// @dev Returns total number of transactions after filers are applied.
@@ -263,10 +264,11 @@ contract MultiSigWallet {
         constant
         returns (uint count)
     {
-        for (uint i = 0; i < transactionCount; i++)
+        for (uint i = 0; i < transactionCount; i++) {
             if (pending && !transactions[i].executed || executed && transactions[i].executed) {
                 count += 1;
             }
+        }
     }
 
     /// @dev Returns list of owners.
@@ -290,11 +292,12 @@ contract MultiSigWallet {
         address[] memory confirmationsTemp = new address[](owners.length);
         uint count = 0;
         uint i;
-        for (i = 0; i < owners.length; i++)
+        for (i = 0; i < owners.length; i++) {
             if (confirmations[transactionId][owners[i]]) {
                 confirmationsTemp[count] = owners[i];
                 count += 1;
             }
+        }
         _confirmations = new address[](count);
         for (i = 0; i < count; i++) {
             _confirmations[i] = confirmationsTemp[i];
@@ -315,11 +318,12 @@ contract MultiSigWallet {
         uint[] memory transactionIdsTemp = new uint[](transactionCount);
         uint count = 0;
         uint i;
-        for (i = 0; i < transactionCount; i++)
+        for (i = 0; i < transactionCount; i++) {
             if (   pending && !transactions[i].executed || executed && transactions[i].executed) {
                 transactionIdsTemp[count] = i;
                 count += 1;
             }
+        }
         _transactionIds = new uint[](to - from);
         for (i = from; i < to; i++) {
             _transactionIds[i - from] = transactionIdsTemp[i];
