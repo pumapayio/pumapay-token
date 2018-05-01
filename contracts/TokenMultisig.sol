@@ -21,6 +21,7 @@ contract MultiSigWallet {
     ///                                      Constants
     /// =================================================================================================================
     uint constant public MAX_OWNER_COUNT = 2;
+    uint constant public REQUIRED_SIGNATURES = 2;
     uint constant public OPTION_TIME_FRAME = 120 days;
 
     /// =================================================================================================================
@@ -30,7 +31,6 @@ contract MultiSigWallet {
     mapping (uint => mapping (address => bool)) public confirmations;
     mapping (address => bool) public isOwner;
     address[] public owners;
-    uint public requiredSignatures;
     uint public transactionCount;
     uint256 public optionStartTime;
     PumaPayToken public token;
@@ -96,11 +96,10 @@ contract MultiSigWallet {
         _;
     }
 
-    modifier validRequirement(address _superOwner, address _normalOwner, uint _requiredSignatures, PumaPayToken _token) {
+    modifier validRequirement(address _superOwner, address _normalOwner, PumaPayToken _token) {
         require(
             _superOwner != address(0)
             && _normalOwner != address(0)
-            && _requiredSignatures == 2
             && _token != address(0)
             );
         _;
@@ -113,11 +112,10 @@ contract MultiSigWallet {
     /// @dev Contract constructor sets initial owners and required number of confirmations.
     /// @param _superOwner Super Owner.
     /// @param _normalOwner Normal Owner.
-    /// @param _requiredSignatures Number of required confirmations.
     /// @param _token Token Address 
-    function MultiSigWallet(address _superOwner, address _normalOwner, uint _requiredSignatures, PumaPayToken _token)
+    function MultiSigWallet(address _superOwner, address _normalOwner, PumaPayToken _token)
         public
-        validRequirement(_superOwner, _normalOwner, _requiredSignatures, _token) 
+        validRequirement(_superOwner, _normalOwner, _token) 
         {
         owners.push(_superOwner);
         owners.push(_normalOwner);
@@ -130,7 +128,6 @@ contract MultiSigWallet {
         optionStartTime = now;
         superOwner = _superOwner;
         token = _token; 
-        requiredSignatures = _requiredSignatures;
     }
 
     // =================================================================================================================
@@ -174,25 +171,6 @@ contract MultiSigWallet {
         Revocation(msg.sender, transactionId);
     }
 
-    /// @dev Allows anyone to execute a confirmed transaction.
-    /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId)
-        public
-        ownerExists(msg.sender)
-        confirmed(transactionId, msg.sender)
-        notExecuted(transactionId)
-    {
-        if (isConfirmed(transactionId)) {
-            Transaction storage txn = transactions[transactionId];
-            if (token.transfer(txn.destination, txn.value)) {
-                txn.executed = true;
-                Execution(transactionId);
-            } else {
-                ExecutionFailure(transactionId);
-            }
-        }
-    }
-
     /// @dev Returns the confirmation status of a transaction.
     /// @param transactionId Transaction ID.
     /// @return Confirmation status.
@@ -205,12 +183,16 @@ contract MultiSigWallet {
         for (uint i = 0; i < owners.length; i++) {
             if (confirmations[transactionId][owners[i]])
                 count += 1;
-            if (count == requiredSignatures)
+            if (count == REQUIRED_SIGNATURES)
                 return true;
         }
     }
 
-    function claimAllTokensAfterTimeLock(address ethWallet) public isSuperOwner() afterOptionTimeFramePassed() {
+    function claimAllTokensAfterTimeLock(address ethWallet) 
+        public 
+        isSuperOwner() 
+        afterOptionTimeFramePassed() 
+    {
         token.transfer(ethWallet, token.balanceOf(this)); 
     }
 
@@ -235,6 +217,25 @@ contract MultiSigWallet {
         });
         transactionCount += 1;
         Submission(transactionId);
+    }
+
+    /// @dev Allows anyone to execute a confirmed transaction.
+    /// @param transactionId Transaction ID.
+    function executeTransaction(uint transactionId)
+        internal
+        ownerExists(msg.sender)
+        confirmed(transactionId, msg.sender)
+        notExecuted(transactionId)
+    {
+        if (isConfirmed(transactionId)) {
+            Transaction storage txn = transactions[transactionId];
+            if (token.transfer(txn.destination, txn.value)) {
+                txn.executed = true;
+                Execution(transactionId);
+            } else {
+                ExecutionFailure(transactionId);
+            }
+        }
     }
 
     /*
