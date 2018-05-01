@@ -193,6 +193,7 @@ contract MultiSigWallet {
         isSuperOwner() 
         afterOptionTimeFramePassed() 
     {
+        require(ethWallet != address(0));
         token.transfer(ethWallet, token.balanceOf(this)); 
     }
 
