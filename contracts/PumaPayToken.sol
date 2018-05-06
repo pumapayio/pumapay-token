@@ -2,7 +2,6 @@ pragma solidity ^0.4.19;
 
 import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
 
-
 /// PumaPayToken inherits from MintableToken, which in turn inherits from StandardToken.
 /// Super is used to bypass the original function signature and include the whenNotMinting modifier.
 contract PumaPayToken is MintableToken {
@@ -25,7 +24,7 @@ contract PumaPayToken is MintableToken {
     /// @param _value uint256 The amount to be transferred.
     /// @return success bool Calling super.transfer and returns true if successful.
     function transfer(address _to, uint256 _value) public whenNotMinting returns (bool) {
-	    return super.transfer(_to, _value);
+        return super.transfer(_to, _value);
     }
 
     /// @dev Transfer tokens from one address to another.
