@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity 0.4.19;
 
 import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
 
@@ -6,7 +6,7 @@ import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.so
 /// Super is used to bypass the original function signature and include the whenNotMinting modifier.
 contract PumaPayToken is MintableToken {
 
-    string public name = "PumaPayToken"; 
+    string public name = "PumaPay"; 
     string public symbol = "PMA";
     uint8 public decimals = 18;
 
