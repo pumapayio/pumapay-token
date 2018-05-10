@@ -447,7 +447,6 @@ contract('Token Multisig', async (accounts) => {
             });
 
             const logs = revocation.logs;
-            console.log(logs);
             assert.equal(logs.length, 1);
             assert.equal(logs[0].event, 'Revocation');
             logs[0].args.transactionId.should.be.bignumber.equal(1);
@@ -782,6 +781,10 @@ contract('Token Multisig', async (accounts) => {
                 } catch (error) {
                     assertJump(error);
                 }
+            });
+
+            it('should revert when the "from" value is higher than the "to" value', async () => {
+                await assertRevert(wallet.getTransactionIds(2, 0, true, true));
             });
         });
     });

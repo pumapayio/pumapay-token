@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity 0.4.23;
 
 // File: node_modules/zeppelin-solidity/contracts/ownership/Ownable.sol
 
@@ -8,37 +8,36 @@ pragma solidity 0.4.19;
  * functions, this simplifies the implementation of "user permissions".
  */
 contract Ownable {
-  address public owner;
+    address public owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
 
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    /**
+    * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+    * account.
+    */
+    function Ownable() public {
+        owner = msg.sender;
+    }
 
+    /**
+    * @dev Throws if called by any account other than the owner.
+    */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
 
-  /**
-   * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-   * account.
-   */
-  function Ownable() public {
-    owner = msg.sender;
-  }
-
-  /**
-   * @dev Throws if called by any account other than the owner.
-   */
-  modifier onlyOwner() {
-    require(msg.sender == owner);
-    _;
-  }
-
-  /**
-   * @dev Allows the current owner to transfer control of the contract to a newOwner.
-   * @param newOwner The address to transfer ownership to.
-   */
-  function transferOwnership(address newOwner) public onlyOwner {
-    require(newOwner != address(0));
-    OwnershipTransferred(owner, newOwner);
-    owner = newOwner;
-  }
+    /**
+    * @dev Allows the current owner to transfer control of the contract to a newOwner.
+    * @param newOwner The address to transfer ownership to.
+    */
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0));
+        OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
 
 }
 
@@ -51,43 +50,43 @@ contract Ownable {
 library SafeMath {
 
   /**
-  * @dev Multiplies two numbers, throws on overflow.
-  */
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a == 0) {
-      return 0;
+    * @dev Multiplies two numbers, throws on overflow.
+    */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0) {
+        return 0;
+        }
+        uint256 c = a * b;
+        assert(c / a == b);
+        return c;
     }
-    uint256 c = a * b;
-    assert(c / a == b);
-    return c;
-  }
 
-  /**
-  * @dev Integer division of two numbers, truncating the quotient.
-  */
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    // assert(b > 0); // Solidity automatically throws when dividing by 0
-    uint256 c = a / b;
-    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-    return c;
-  }
+    /**
+    * @dev Integer division of two numbers, truncating the quotient.
+    */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        // assert(b > 0); // Solidity automatically throws when dividing by 0
+        uint256 c = a / b;
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+        return c;
+    }
 
-  /**
-  * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
-  */
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    assert(b <= a);
-    return a - b;
-  }
+    /**
+    * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+    */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        assert(b <= a);
+        return a - b;
+    }
 
-  /**
-  * @dev Adds two numbers, throws on overflow.
-  */
-  function add(uint256 a, uint256 b) internal pure returns (uint256) {
-    uint256 c = a + b;
-    assert(c >= a);
-    return c;
-  }
+    /**
+    * @dev Adds two numbers, throws on overflow.
+    */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        assert(c >= a);
+        return c;
+    }
 }
 
 // File: node_modules/zeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol
@@ -98,10 +97,10 @@ library SafeMath {
  * @dev see https://github.com/ethereum/EIPs/issues/179
  */
 contract ERC20Basic {
-  function totalSupply() public view returns (uint256);
-  function balanceOf(address who) public view returns (uint256);
-  function transfer(address to, uint256 value) public returns (bool);
-  event Transfer(address indexed from, address indexed to, uint256 value);
+    function totalSupply() public view returns (uint256);
+    function balanceOf(address who) public view returns (uint256);
+    function transfer(address to, uint256 value) public returns (bool);
+    event Transfer(address indexed from, address indexed to, uint256 value);
 }
 
 // File: node_modules/zeppelin-solidity/contracts/token/ERC20/BasicToken.sol
@@ -111,44 +110,43 @@ contract ERC20Basic {
  * @dev Basic version of StandardToken, with no allowances.
  */
 contract BasicToken is ERC20Basic {
-  using SafeMath for uint256;
+    using SafeMath for uint256;
 
-  mapping(address => uint256) balances;
+    mapping(address => uint256) balances;
 
-  uint256 totalSupply_;
+    uint256 totalSupply_;
 
-  /**
-  * @dev total number of tokens in existence
-  */
-  function totalSupply() public view returns (uint256) {
-    return totalSupply_;
-  }
+    /**
+    * @dev total number of tokens in existence
+    */
+    function totalSupply() public view returns (uint256) {
+        return totalSupply_;
+    }
 
-  /**
-  * @dev transfer token for a specified address
-  * @param _to The address to transfer to.
-  * @param _value The amount to be transferred.
-  */
-  function transfer(address _to, uint256 _value) public returns (bool) {
-    require(_to != address(0));
-    require(_value <= balances[msg.sender]);
+    /**
+    * @dev transfer token for a specified address
+    * @param _to The address to transfer to.
+    * @param _value The amount to be transferred.
+    */
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        require(_to != address(0));
+        require(_value <= balances[msg.sender]);
 
-    // SafeMath.sub will throw if there is not enough balance.
-    balances[msg.sender] = balances[msg.sender].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    Transfer(msg.sender, _to, _value);
-    return true;
-  }
+        // SafeMath.sub will throw if there is not enough balance.
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        Transfer(msg.sender, _to, _value);
+        return true;
+    }
 
-  /**
-  * @dev Gets the balance of the specified address.
-  * @param _owner The address to query the the balance of.
-  * @return An uint256 representing the amount owned by the passed address.
-  */
-  function balanceOf(address _owner) public view returns (uint256 balance) {
-    return balances[_owner];
-  }
-
+    /**
+    * @dev Gets the balance of the specified address.
+    * @param _owner The address to query the the balance of.
+    * @return An uint256 representing the amount owned by the passed address.
+    */
+    function balanceOf(address _owner) public view returns (uint256 balance) {
+        return balances[_owner];
+    }
 }
 
 // File: node_modules/zeppelin-solidity/contracts/token/ERC20/ERC20.sol
@@ -158,10 +156,10 @@ contract BasicToken is ERC20Basic {
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
 contract ERC20 is ERC20Basic {
-  function allowance(address owner, address spender) public view returns (uint256);
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-  function approve(address spender, uint256 value) public returns (bool);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
+    function allowance(address owner, address spender) public view returns (uint256);
+    function transferFrom(address from, address to, uint256 value) public returns (bool);
+    function approve(address spender, uint256 value) public returns (bool);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 // File: node_modules/zeppelin-solidity/contracts/token/ERC20/StandardToken.sol
@@ -174,91 +172,88 @@ contract ERC20 is ERC20Basic {
  * @dev Based on code by FirstBlood: https://github.com/Firstbloodio/token/blob/master/smart_contract/FirstBloodToken.sol
  */
 contract StandardToken is ERC20, BasicToken {
+    mapping (address => mapping (address => uint256)) internal allowed;
 
-  mapping (address => mapping (address => uint256)) internal allowed;
+    /**
+    * @dev Transfer tokens from one address to another
+    * @param _from address The address which you want to send tokens from
+    * @param _to address The address which you want to transfer to
+    * @param _value uint256 the amount of tokens to be transferred
+    */
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+        require(_to != address(0));
+        require(_value <= balances[_from]);
+        require(_value <= allowed[_from][msg.sender]);
 
-
-  /**
-   * @dev Transfer tokens from one address to another
-   * @param _from address The address which you want to send tokens from
-   * @param _to address The address which you want to transfer to
-   * @param _value uint256 the amount of tokens to be transferred
-   */
-  function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-    require(_to != address(0));
-    require(_value <= balances[_from]);
-    require(_value <= allowed[_from][msg.sender]);
-
-    balances[_from] = balances[_from].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
-    Transfer(_from, _to, _value);
-    return true;
-  }
-
-  /**
-   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
-   *
-   * Beware that changing an allowance with this method brings the risk that someone may use both the old
-   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
-   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
-   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-   * @param _spender The address which will spend the funds.
-   * @param _value The amount of tokens to be spent.
-   */
-  function approve(address _spender, uint256 _value) public returns (bool) {
-    allowed[msg.sender][_spender] = _value;
-    Approval(msg.sender, _spender, _value);
-    return true;
-  }
-
-  /**
-   * @dev Function to check the amount of tokens that an owner allowed to a spender.
-   * @param _owner address The address which owns the funds.
-   * @param _spender address The address which will spend the funds.
-   * @return A uint256 specifying the amount of tokens still available for the spender.
-   */
-  function allowance(address _owner, address _spender) public view returns (uint256) {
-    return allowed[_owner][_spender];
-  }
-
-  /**
-   * @dev Increase the amount of tokens that an owner allowed to a spender.
-   *
-   * approve should be called when allowed[_spender] == 0. To increment
-   * allowed value is better to use this function to avoid 2 calls (and wait until
-   * the first transaction is mined)
-   * From MonolithDAO Token.sol
-   * @param _spender The address which will spend the funds.
-   * @param _addedValue The amount of tokens to increase the allowance by.
-   */
-  function increaseApproval(address _spender, uint _addedValue) public returns (bool) {
-    allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
-
-  /**
-   * @dev Decrease the amount of tokens that an owner allowed to a spender.
-   *
-   * approve should be called when allowed[_spender] == 0. To decrement
-   * allowed value is better to use this function to avoid 2 calls (and wait until
-   * the first transaction is mined)
-   * From MonolithDAO Token.sol
-   * @param _spender The address which will spend the funds.
-   * @param _subtractedValue The amount of tokens to decrease the allowance by.
-   */
-  function decreaseApproval(address _spender, uint _subtractedValue) public returns (bool) {
-    uint oldValue = allowed[msg.sender][_spender];
-    if (_subtractedValue > oldValue) {
-      allowed[msg.sender][_spender] = 0;
-    } else {
-      allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        balances[_from] = balances[_from].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+        Transfer(_from, _to, _value);
+        return true;
     }
-    Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
-    return true;
-  }
 
+    /**
+    * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+    *
+    * Beware that changing an allowance with this method brings the risk that someone may use both the old
+    * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+    * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+    * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+    * @param _spender The address which will spend the funds.
+    * @param _value The amount of tokens to be spent.
+    */
+    function approve(address _spender, uint256 _value) public returns (bool) {
+        allowed[msg.sender][_spender] = _value;
+        Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    /**
+    * @dev Function to check the amount of tokens that an owner allowed to a spender.
+    * @param _owner address The address which owns the funds.
+    * @param _spender address The address which will spend the funds.
+    * @return A uint256 specifying the amount of tokens still available for the spender.
+    */
+    function allowance(address _owner, address _spender) public view returns (uint256) {
+        return allowed[_owner][_spender];
+    }
+
+    /**
+    * @dev Increase the amount of tokens that an owner allowed to a spender.
+    *
+    * approve should be called when allowed[_spender] == 0. To increment
+    * allowed value is better to use this function to avoid 2 calls (and wait until
+    * the first transaction is mined)
+    * From MonolithDAO Token.sol
+    * @param _spender The address which will spend the funds.
+    * @param _addedValue The amount of tokens to increase the allowance by.
+    */
+    function increaseApproval(address _spender, uint _addedValue) public returns (bool) {
+        allowed[msg.sender][_spender] = allowed[msg.sender][_spender].add(_addedValue);
+        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
+
+    /**
+    * @dev Decrease the amount of tokens that an owner allowed to a spender.
+    *
+    * approve should be called when allowed[_spender] == 0. To decrement
+    * allowed value is better to use this function to avoid 2 calls (and wait until
+    * the first transaction is mined)
+    * From MonolithDAO Token.sol
+    * @param _spender The address which will spend the funds.
+    * @param _subtractedValue The amount of tokens to decrease the allowance by.
+    */
+    function decreaseApproval(address _spender, uint _subtractedValue) public returns (bool) {
+        uint oldValue = allowed[msg.sender][_spender];
+        if (_subtractedValue > oldValue) {
+        allowed[msg.sender][_spender] = 0;
+        } else {
+        allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+        }
+        Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
+        return true;
+    }
 }
 
 // File: node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.sol
@@ -270,40 +265,40 @@ contract StandardToken is ERC20, BasicToken {
  * Based on code by TokenMarketNet: https://github.com/TokenMarketNet/ico/blob/master/contracts/MintableToken.sol
  */
 contract MintableToken is StandardToken, Ownable {
-  event Mint(address indexed to, uint256 amount);
-  event MintFinished();
+    event Mint(address indexed to, uint256 amount);
+    event MintFinished();
 
-  bool public mintingFinished = false;
+    bool public mintingFinished = false;
 
 
-  modifier canMint() {
-    require(!mintingFinished);
-    _;
-  }
+    modifier canMint() {
+        require(!mintingFinished);
+        _;
+    }
 
-  /**
-   * @dev Function to mint tokens
-   * @param _to The address that will receive the minted tokens.
-   * @param _amount The amount of tokens to mint.
-   * @return A boolean that indicates if the operation was successful.
-   */
-  function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
-    totalSupply_ = totalSupply_.add(_amount);
-    balances[_to] = balances[_to].add(_amount);
-    Mint(_to, _amount);
-    Transfer(address(0), _to, _amount);
-    return true;
-  }
+    /**
+    * @dev Function to mint tokens
+    * @param _to The address that will receive the minted tokens.
+    * @param _amount The amount of tokens to mint.
+    * @return A boolean that indicates if the operation was successful.
+    */
+    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+        totalSupply_ = totalSupply_.add(_amount);
+        balances[_to] = balances[_to].add(_amount);
+        Mint(_to, _amount);
+        Transfer(address(0), _to, _amount);
+        return true;
+    }
 
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
-  function finishMinting() onlyOwner canMint public returns (bool) {
-    mintingFinished = true;
-    MintFinished();
-    return true;
-  }
+    /**
+    * @dev Function to stop minting new tokens.
+    * @return True if the operation was successful.
+    */
+    function finishMinting() onlyOwner canMint public returns (bool) {
+        mintingFinished = true;
+        MintFinished();
+        return true;
+    }
 }
 
 // File: contracts/PumaPayToken.sol
@@ -340,5 +335,331 @@ contract PumaPayToken is MintableToken {
     /// @return success bool Calling super.transferFrom and returns true if successful.
     function transferFrom(address _from, address _to, uint256 _value) public whenNotMinting returns (bool) {
         return super.transferFrom(_from, _to, _value);
+    }
+}
+
+// File: contracts/TokenMultiSig.sol
+
+/// @title TokenMultiSigWallet wallet - Allows two parties to agree on token transactions before execution. 
+/// Only after a predefined amount of time (120 days) the super owner can transfer all the tokens to another wallet. 
+/// This Token Multisig Wallet a modified version of the Gnosis Mutlsig Wallet - https://github.com/gnosis/MultiSigWallet
+/// @author Giorgos Kourtellos - <giorgos@pumapay.io>
+contract TokenMultiSigWallet {
+
+    /// =================================================================================================================
+    ///                                      Events
+    /// =================================================================================================================
+    event Confirmation(address indexed sender, uint indexed transactionId);
+    event Revocation(address indexed sender, uint indexed transactionId);
+    event Submission(uint indexed transactionId);
+    event Execution(uint indexed transactionId);
+
+    /// =================================================================================================================
+    ///                                      Constants
+    /// =================================================================================================================
+    uint constant public REQUIRED_SIGNATURES = 2;
+    uint constant public OPTION_TIME_FRAME = 120 days;
+
+    /// =================================================================================================================
+    ///                                      Members
+    /// =================================================================================================================
+    mapping (uint => Transaction) public transactions;
+    mapping (uint => mapping (address => bool)) public confirmations;
+    mapping (address => bool) public isOwner;
+    address[] public owners;
+    uint public transactionCount;
+    uint256 public optionStartTime;
+    PumaPayToken public token;
+    address public superOwner;
+
+    struct Transaction {
+        address destination;
+        uint value;
+        bool executed;
+    }
+
+    /// =================================================================================================================
+    ///                                      Modifiers
+    /// =================================================================================================================
+    modifier isSuperOwner() {
+        require(msg.sender == superOwner);
+        _;
+    }
+
+    modifier afterOptionTimeFramePassed() {
+        require(optionStartTime + OPTION_TIME_FRAME < now);
+        _;
+    }
+
+    modifier ownerExists(address owner) {
+        require(isOwner[owner]);
+        _;
+    }
+
+    modifier transactionExists(uint transactionId) {
+        require(transactions[transactionId].destination != 0);
+        _;
+    }
+
+    modifier confirmed(uint transactionId, address owner) {
+        require(confirmations[transactionId][owner]);
+        _;
+    }
+
+    modifier notConfirmed(uint transactionId, address owner) {
+        require(!confirmations[transactionId][owner]);
+        _;
+    }
+
+    modifier notExecuted(uint transactionId) {
+        require(!transactions[transactionId].executed);
+        _;
+    }
+
+    modifier notNull(address _address) {
+        require(_address != 0);
+        _;
+    }
+
+    modifier validValue(uint _value) {
+        require(_value <= token.balanceOf(this));
+        _;
+    }
+
+    modifier validRequirement(address _superOwner, address _normalOwner, PumaPayToken _token) {
+        require(
+            _superOwner != address(0)
+            && _normalOwner != address(0)
+            && _superOwner != _normalOwner
+            && _token != address(0)
+            );
+        _;
+    }
+
+    /// =================================================================================================================
+    ///                                      Constructor
+    /// =================================================================================================================
+
+    /// @dev Contract constructor sets the super owner and normal onwer and the token that will be held in the wallet. 
+    /// @param _superOwner Super Owner.
+    /// @param _normalOwner Normal Owner.
+    /// @param _token Token Address.
+    constructor(address _superOwner, address _normalOwner, PumaPayToken _token)
+        public
+        validRequirement(_superOwner, _normalOwner, _token) 
+        {
+        owners.push(_superOwner);
+        owners.push(_normalOwner);
+
+        for (uint i = 0; i < owners.length; i++) {
+            isOwner[owners[i]] = true;
+        }
+        superOwner = _superOwner;
+        token = _token;
+        optionStartTime = now;
+        transactionCount = 1;
+    }
+
+    // =================================================================================================================
+    //                                      Public Functions
+    // =================================================================================================================
+
+    /// @dev Allows an owner to submit and confirm a transaction.
+    /// @param destination Transaction target address.
+    /// @param value Transaction ether value.
+    /// @return Returns transaction ID.
+    function submitTransaction(address destination, uint value)
+        public
+        returns (uint transactionId)
+    {
+        transactionId = addTransaction(destination, value);
+        confirmTransaction(transactionId);
+    }
+
+    /// @dev Allows an owner to confirm a transaction.
+    /// @param transactionId Transaction ID.
+    function confirmTransaction(uint transactionId)
+        public
+        ownerExists(msg.sender)
+        transactionExists(transactionId)
+        notConfirmed(transactionId, msg.sender)
+    {
+        confirmations[transactionId][msg.sender] = true;
+        emit Confirmation(msg.sender, transactionId);
+        executeTransaction(transactionId);
+    }
+
+    /// @dev Allows an owner to revoke a confirmation for a transaction.
+    /// @param transactionId Transaction ID.
+    function revokeConfirmation(uint transactionId)
+        public
+        ownerExists(msg.sender)
+        confirmed(transactionId, msg.sender)
+        notExecuted(transactionId)
+    {
+        confirmations[transactionId][msg.sender] = false;
+        emit Revocation(msg.sender, transactionId);
+    }
+
+    /// @dev Returns the confirmation status of a transaction.
+    /// @param transactionId Transaction ID.
+    /// @return Confirmation status.
+    function isConfirmed(uint transactionId)
+        public
+        constant
+        returns (bool)
+    {
+        uint count = 0;
+        for (uint i = 0; i < owners.length; i++) {
+            if (confirmations[transactionId][owners[i]])
+                count += 1;
+            if (count == REQUIRED_SIGNATURES)
+                return true;
+        }
+    }
+
+    function claimAllTokensAfterTimeLock(address ethWallet) 
+        public 
+        isSuperOwner() 
+        afterOptionTimeFramePassed() 
+        notNull(ethWallet)
+    {
+        token.transfer(ethWallet, token.balanceOf(this)); 
+    }
+
+    // =================================================================================================================
+    //                                      Internal Functions
+    // =================================================================================================================
+
+    /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
+    /// @param destination Transaction target address.
+    /// @param value Transaction ether value.
+    /// @return Returns transaction ID.
+    function addTransaction(address destination, uint value)
+        internal
+        notNull(destination)
+        validValue(value)
+        returns (uint transactionId)
+    {
+        transactionId = transactionCount;
+        transactions[transactionId] = Transaction({
+            destination: destination,
+            value: value,
+            executed: false
+        });
+        transactionCount += 1;
+        emit Submission(transactionId);
+    }
+
+    /// @dev Allows anyone to execute a confirmed transaction.
+    /// @param transactionId Transaction ID.
+    function executeTransaction(uint transactionId)
+        internal
+        ownerExists(msg.sender)
+        confirmed(transactionId, msg.sender)
+        notExecuted(transactionId)
+        validValue(transactions[transactionId].value)
+    {
+        if (isConfirmed(transactionId)) {
+            token.transfer(transactions[transactionId].destination, transactions[transactionId].value);
+            transactions[transactionId].executed = true;
+            emit Execution(transactionId);
+        }
+    }
+
+    /*
+     * Web3 call functions
+     */
+    /// @dev Returns number of confirmations of a transaction.
+    /// @param transactionId Transaction ID.
+    /// @return Number of confirmations.
+    function getConfirmationCount(uint transactionId)
+        public
+        constant
+        returns (uint count)
+    {
+        for (uint i = 0; i < owners.length; i++) {
+            if (confirmations[transactionId][owners[i]]) {
+                count += 1;
+            }
+        }
+    }
+
+    /// @dev Returns total number of transactions after filers are applied.
+    /// @param pending Include pending transactions.
+    /// @param executed Include executed transactions.
+    /// @return Total number of transactions after filters are applied.
+    function getTransactionCount(bool pending, bool executed)
+        public
+        constant
+        returns (uint count)
+    {
+        for (uint i = 0; i < transactionCount - 1; i++) {
+            if (pending && !transactions[i].executed || 
+                executed && transactions[i].executed) {
+                count += 1;
+            }
+        }
+    }
+
+    /// @dev Returns list of owners.
+    /// @return List of owner addresses.
+    function getOwners()
+        public
+        constant
+        returns (address[])
+    {
+        return owners;
+    }
+
+    /// @dev Returns array with owner addresses, which confirmed transaction.
+    /// @param transactionId Transaction ID.
+    /// @return Returns array of owner addresses.
+    function getConfirmations(uint transactionId)
+        public
+        constant
+        returns (address[] _confirmations)
+    {
+        address[] memory confirmationsTemp = new address[](owners.length);
+        uint count = 0;
+        uint i;
+        for (i = 0; i < owners.length; i++) {
+            if (confirmations[transactionId][owners[i]]) {
+                confirmationsTemp[count] = owners[i];
+                count += 1;
+            }
+        }
+        _confirmations = new address[](count);
+        for (i = 0; i < count; i++) {
+            _confirmations[i] = confirmationsTemp[i];
+        }
+    }
+
+    /// @dev Returns list of transaction IDs in defined range.
+    /// @param from Index start position of transaction array.
+    /// @param to Index end position of transaction array.
+    /// @param pending Include pending transactions.
+    /// @param executed Include executed transactions.
+    /// @return Returns array of transaction IDs.
+    function getTransactionIds(uint from, uint to, bool pending, bool executed)
+        public
+        constant
+        returns (uint[] _transactionIds)
+    {
+        require(to > from);
+        uint[] memory transactionIdsTemp = new uint[](transactionCount);
+        uint count = 0;
+        uint i;
+        for (i = 1; i < transactionCount; i++) {
+            if (pending && !transactions[i].executed || 
+                executed && transactions[i].executed) {
+                transactionIdsTemp[count] = i;
+                count += 1;
+            }
+        }
+        _transactionIds = new uint[](to - from);
+        for (i = from; i < to; i++) {
+            _transactionIds[i - from] = transactionIdsTemp[i];
+        }
     }
 }

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity 0.4.23;
 
 import "./PumaPayToken.sol";
 
@@ -15,12 +15,10 @@ contract TokenMultiSigWallet {
     event Revocation(address indexed sender, uint indexed transactionId);
     event Submission(uint indexed transactionId);
     event Execution(uint indexed transactionId);
-    event LogNumber(uint number);
 
     /// =================================================================================================================
     ///                                      Constants
     /// =================================================================================================================
-    uint constant public MAX_OWNER_COUNT = 2;
     uint constant public REQUIRED_SIGNATURES = 2;
     uint constant public OPTION_TIME_FRAME = 120 days;
 
@@ -108,7 +106,7 @@ contract TokenMultiSigWallet {
     /// @param _superOwner Super Owner.
     /// @param _normalOwner Normal Owner.
     /// @param _token Token Address.
-    function TokenMultiSigWallet(address _superOwner, address _normalOwner, PumaPayToken _token)
+    constructor(address _superOwner, address _normalOwner, PumaPayToken _token)
         public
         validRequirement(_superOwner, _normalOwner, _token) 
         {
@@ -149,7 +147,7 @@ contract TokenMultiSigWallet {
         notConfirmed(transactionId, msg.sender)
     {
         confirmations[transactionId][msg.sender] = true;
-        Confirmation(msg.sender, transactionId);
+        emit Confirmation(msg.sender, transactionId);
         executeTransaction(transactionId);
     }
 
@@ -162,7 +160,7 @@ contract TokenMultiSigWallet {
         notExecuted(transactionId)
     {
         confirmations[transactionId][msg.sender] = false;
-        Revocation(msg.sender, transactionId);
+        emit Revocation(msg.sender, transactionId);
     }
 
     /// @dev Returns the confirmation status of a transaction.
@@ -212,7 +210,7 @@ contract TokenMultiSigWallet {
             executed: false
         });
         transactionCount += 1;
-        Submission(transactionId);
+        emit Submission(transactionId);
     }
 
     /// @dev Allows anyone to execute a confirmed transaction.
@@ -227,7 +225,7 @@ contract TokenMultiSigWallet {
         if (isConfirmed(transactionId)) {
             token.transfer(transactions[transactionId].destination, transactions[transactionId].value);
             transactions[transactionId].executed = true;
-            Execution(transactionId);
+            emit Execution(transactionId);
         }
     }
 
@@ -310,6 +308,7 @@ contract TokenMultiSigWallet {
         constant
         returns (uint[] _transactionIds)
     {
+        require(to > from);
         uint[] memory transactionIdsTemp = new uint[](transactionCount);
         uint count = 0;
         uint i;
