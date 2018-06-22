@@ -688,17 +688,17 @@ contract('Token Multisig', async (accounts) => {
 
             it('should return an array of pending transactions IDs when none has been executed', async () => {
                 const transactionIDs = await wallet.getTransactionIds(0, 3, true, false);
-                assert.equal(transactionIDs.length, 3)
+                assert.equal(transactionIDs.length, 3);
                 transactionIDs[0].should.be.bignumber.equal(1);
                 transactionIDs[1].should.be.bignumber.equal(2);
                 transactionIDs[2].should.be.bignumber.equal(3);
             });
 
             it('should return an array of pending transactions IDs when none has been executed within the specified limits', async () => {
-                const transactionIDs = await wallet.getTransactionIds(0, 2, true, false);
-                assert.equal(transactionIDs.length, 2)
-                transactionIDs[0].should.be.bignumber.equal(1);
-                transactionIDs[1].should.be.bignumber.equal(2);
+                const transactionIDs = await wallet.getTransactionIds(1, 3, true, false);
+                assert.equal(transactionIDs.length, 2);
+                transactionIDs[0].should.be.bignumber.equal(2);
+                transactionIDs[1].should.be.bignumber.equal(3);
             });
 
             it('should return an array of pending transactions IDs when one has been executed', async () => {
@@ -713,12 +713,15 @@ contract('Token Multisig', async (accounts) => {
             });
 
             it('should return an array of pending transactions IDs when one has been executed within the specified limits', async () => {
+                await wallet.submitTransaction(destinationAccountTwo, 6 * ONE_ETHER, {
+                    from: superOwner
+                });
                 await wallet.confirmTransaction(2, {
                     from: normalOwner
                 });
-                const transactionIDs = await wallet.getTransactionIds(0, 1, true, false);
+                const transactionIDs = await wallet.getTransactionIds(1, 2, true, false);
                 assert.equal(transactionIDs.length, 1);
-                transactionIDs[0].should.be.bignumber.equal(1);
+                transactionIDs[0].should.be.bignumber.equal(3);
             });
 
             it('should return an array of executed transactions IDs', async () => {
