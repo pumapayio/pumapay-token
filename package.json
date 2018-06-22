@@ -2,7 +2,7 @@
   "name": "pumapay",
   "author": "PumaPay Team",
   "version": "0.0.1",
-  "description": "PumaPay Token",
+  "description": "PumaPay Smart Contracts",
   "main": "truffle.js",
   "scripts": {
     "test": "scripts/test.sh",
@@ -16,11 +16,11 @@
     "lodash": "^4.17.5",
     "mocha": "^5.0.4",
     "moment": "^2.22.1",
+    "openzeppelin-solidity": "^1.9.0",
     "save": "^2.3.2",
     "truffle": "^4.1.3",
     "truffle-assertions": "^0.1.3",
-    "web3": "^0.20.6",
-    "zeppelin-solidity": "1.7.0"
+    "web3": "^0.20.6"
   },
   "devDependencies": {
     "babel-polyfill": "^6.26.0",

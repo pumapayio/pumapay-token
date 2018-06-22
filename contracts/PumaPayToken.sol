@@ -1,6 +1,6 @@
-pragma solidity 0.4.19;
+pragma solidity ^0.4.19;
 
-import "../node_modules/zeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
+import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
 
 /// PumaPayToken inherits from MintableToken, which in turn inherits from StandardToken.
 /// Super is used to bypass the original function signature and include the whenNotMinting modifier.
@@ -10,7 +10,7 @@ contract PumaPayToken is MintableToken {
     string public symbol = "PMA";
     uint8 public decimals = 18;
 
-    function PumaPayToken() public {
+    constructor() public {
     }
 
     /// This modifier will be used to disable all ERC20 functionalities during the minting process.

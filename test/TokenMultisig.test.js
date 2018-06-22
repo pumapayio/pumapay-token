@@ -3,7 +3,6 @@ import assertJump from './helpers/assertJump';
 import timeTravel from './helpers/timeHelper';
 const PumaPayToken = artifacts.require('PumaPayToken');
 const TokenMultiSigWallet = artifacts.require('TokenMultiSigWallet');
-const truffleAssert = require('truffle-assertions');
 const BigNumber = web3.BigNumber;
 
 require('chai')
@@ -15,7 +14,6 @@ const MINUTE = 60; // 60 seconds
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const TIME_LOCK_PERIOD = 120 * DAY;
-const GAS_PRICE = 100000000000;
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ONE_ETHER = web3.toWei(1, 'ether');
 const MINTED_TOKENS = 2000;

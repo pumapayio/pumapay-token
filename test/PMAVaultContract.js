@@ -1,7 +1,7 @@
 import assertRevert from './helpers/assertRevert';
 import timeTravel from './helpers/timeHelper';
 const PumaPayToken = artifacts.require('PumaPayToken');
-const PMAVault = artifacts.require('PMAVault');
+const PumaPayVault = artifacts.require('PumaPayVault');
 const BigNumber = web3.BigNumber;
 
 require('chai')
@@ -31,7 +31,7 @@ contract('PMA Vault Contract', async (accounts) => {
     });
 
     beforeEach('Deploying new PMA Vault ', async () => {
-        vault = await PMAVault
+        vault = await PumaPayVault
             .new(owner, token.address, [10, 20, 30, 90, 180], [5, 10, 20, 50, 50], {
                 from: deployerAccount
             });
@@ -62,6 +62,7 @@ contract('PMA Vault Contract', async (accounts) => {
 
             assert.equal(lockedScheduleConstructed, false);
         });
+
 
         it('PMA Vault intervals should be the intervals specified during contract deployment', async () => {
             const vaultInterval1 = await vault.intervals(0);
@@ -94,35 +95,35 @@ contract('PMA Vault Contract', async (accounts) => {
 
     describe('Deploying Failing', async () => {
         it('should revert when deploying a PMA Vault with ZERO owner address', async () => {
-            await assertRevert(PMAVault
+            await assertRevert(PumaPayVault
                 .new(ZERO_ADDRESS, token.address, [10, 20, 30, 180], [5, 10, 20, 50], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault with ZERO token address', async () => {
-            await assertRevert(PMAVault
+            await assertRevert(PumaPayVault
                 .new(owner, ZERO_ADDRESS, [10, 20, 30, 180], [5, 10, 20, 50], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault with ZERO interval', async () => {
-            await assertRevert(PMAVault
+            await assertRevert(PumaPayVault
                 .new(owner, ZERO_ADDRESS, [10, 0, 30, 180], [5, 10, 20, 50], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault with ZERO percentage', async () => {
-            await assertRevert(PMAVault
+            await assertRevert(PumaPayVault
                 .new(owner, ZERO_ADDRESS, [10, 0, 30, 180], [5, 10, 0, 50], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault unequal interval and percentage arrays', async () => {
-            await assertRevert(PMAVault
+            await assertRevert(PumaPayVault
                 .new(owner, ZERO_ADDRESS, [10, 0, 30, 180, 200], [5, 10, 0, 50], {
                     from: deployerAccount
                 }));
