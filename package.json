@@ -12,13 +12,13 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.1",
-    "ganache-cli": "^6.1.0",
-    "lodash": "^4.17.5",
-    "mocha": "^5.0.4",
-    "moment": "^2.22.1",
-    "openzeppelin-solidity": "^1.9.0",
+    "ganache-cli": "^6.1.3",
+    "lodash": "^4.17.10",
+    "mocha": "^5.2.0",
+    "moment": "^2.22.2",
+    "openzeppelin-solidity": "1.10.0",
     "save": "^2.3.2",
-    "truffle": "^4.1.3",
+    "truffle": "^4.1.12",
     "truffle-assertions": "^0.1.3",
     "web3": "^0.20.6"
   },
@@ -32,7 +32,7 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^2.0.2",
-    "solidity-coverage": "^0.4.14",
+    "solidity-coverage": "^0.4.15",
     "truffle-flattener": "^1.2.5"
   }
 }

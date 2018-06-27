@@ -1,4 +1,4 @@
-pragma solidity 0.4.23;
+pragma solidity 0.4.24;
 
 import "./PumaPayToken.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -22,7 +22,6 @@ contract TimeVesting is Ownable {
     ///                                      Members
     /// =================================================================================================================
     
-    address public owner;
     uint256 public unlockPeriodInDays;
     uint256 public unlockPercetage;
     uint256 public vestingUlockedPercentage;
@@ -36,11 +35,6 @@ contract TimeVesting is Ownable {
     /// =================================================================================================================
     ///                                      Modifiers
     /// =================================================================================================================
-
-    modifier isOwner() {
-        require(msg.sender == owner);
-        _;
-    }
 
     modifier hasTokens() {
         require(token.balanceOf(this) > 0);
@@ -118,7 +112,7 @@ contract TimeVesting is Ownable {
     /// It emmits an event with the the amount of tokens withdrawn.
     function withdrawAllowedAmount()
     public 
-    isOwner()
+    onlyOwner()
     hasTokens()
     initialTokenBalanceSet() {
         token.transfer(owner, initialTokenBalance.mul(vestingUlockedPercentage).div(100).sub(withdrawnTokens));
@@ -133,7 +127,7 @@ contract TimeVesting is Ownable {
     /// It emmits an event with the new vesting details - next vesting period and unlocked percentage.
     function updateVestingDetails()
     public 
-    isOwner()
+    onlyOwner()
     hasTokens()
     validUpdateTime()
     initialTokenBalanceSet()
@@ -149,7 +143,7 @@ contract TimeVesting is Ownable {
     /// It sets the initial balance of the vesting contract.
     /// It emmits an event with the initial balance.
     function setInitialTokenBalance() 
-    isOwner()
+    onlyOwner()
     hasTokens()
     initialTokenBalanceNotSet()
     public {

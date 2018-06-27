@@ -32,7 +32,7 @@ contract('PMA Vault Contract', async (accounts) => {
 
     beforeEach('Deploying new PMA Vault ', async () => {
         vault = await PumaPayVault
-            .new(owner, token.address, [10, 20, 30, 90, 180], [5, 10, 20, 50, 50], {
+            .new(owner, token.address, [10, 20, 30, 90, 180], [5, 10, 20, 50, 100], {
                 from: deployerAccount
             });
     });
@@ -52,9 +52,9 @@ contract('PMA Vault Contract', async (accounts) => {
         });
 
         it('PMA Vault owner should be the address that deployed the contract', async () => {
-            const vaultOwner = await vault.owner();
+            const vaultToken = await vault.token();
 
-            assert.equal(vaultOwner.toString(), owner);
+            assert.equal(vaultToken, token.address);
         });
 
         it('PMA Vault lockedScheduleConstructed should be set to false', async () => {
@@ -89,42 +89,63 @@ contract('PMA Vault Contract', async (accounts) => {
             assert.equal(vaultPercentage2, 10);
             assert.equal(vaultPercentage3, 20);
             assert.equal(vaultPercentage4, 50);
-            assert.equal(vaultPercentage5, 50);
+            assert.equal(vaultPercentage5, 100);
         });
     });
 
     describe('Deploying Failing', async () => {
         it('should revert when deploying a PMA Vault with ZERO owner address', async () => {
             await assertRevert(PumaPayVault
-                .new(ZERO_ADDRESS, token.address, [10, 20, 30, 180], [5, 10, 20, 50], {
+                .new(ZERO_ADDRESS, token.address, [10, 20, 30, 180], [5, 10, 20, 100], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault with ZERO token address', async () => {
             await assertRevert(PumaPayVault
-                .new(owner, ZERO_ADDRESS, [10, 20, 30, 180], [5, 10, 20, 50], {
+                .new(owner, ZERO_ADDRESS, [10, 20, 30, 180], [5, 10, 20, 100], {
                     from: deployerAccount
                 }));
         });
 
-        it('should revert when deploying a PMA Vault with ZERO interval', async () => {
+        it('should revert when deploying a PMA Vault wtih unequal interval and percentage arrays', async () => {
             await assertRevert(PumaPayVault
-                .new(owner, ZERO_ADDRESS, [10, 0, 30, 180], [5, 10, 20, 50], {
+                .new(owner, ZERO_ADDRESS, [10, 20, 30, 180, 200], [5, 10, 20, 100], {
                     from: deployerAccount
                 }));
         });
 
         it('should revert when deploying a PMA Vault with ZERO percentage', async () => {
             await assertRevert(PumaPayVault
-                .new(owner, ZERO_ADDRESS, [10, 0, 30, 180], [5, 10, 0, 50], {
+                .new(owner, token.address, [10, 20, 30, 180], [5, 10, 0, 100], {
                     from: deployerAccount
                 }));
         });
 
-        it('should revert when deploying a PMA Vault unequal interval and percentage arrays', async () => {
+        it('should revert when deploying a PMA Vault with percentage array not having 100 as last number', async () => {
             await assertRevert(PumaPayVault
-                .new(owner, ZERO_ADDRESS, [10, 0, 30, 180, 200], [5, 10, 0, 50], {
+                .new(owner, ZERO_ADDRESS, [10, 0, 30, 180, 200], [5, 10, 20, 99], {
+                    from: deployerAccount
+                }));
+        });
+
+        it('should revert when deploying a PMA Vault with percentage array that does not increment', async () => {
+            await assertRevert(PumaPayVault
+                .new(owner, ZERO_ADDRESS, [10, 0, 30, 180, 200], [5, 20, 10, 100], {
+                    from: deployerAccount
+                }));
+        });
+
+        it('should revert when deploying a PMA Vault with ZERO interval', async () => {
+            await assertRevert(PumaPayVault
+                .new(owner, token.address, [10, 0, 30, 180], [5, 10, 20, 100], {
+                    from: deployerAccount
+                }));
+        });
+
+        it('should revert when deploying a PMA Vault with interval array that does not increment', async () => {
+            await assertRevert(PumaPayVault
+                .new(owner, token.address, [10, 30, 20, 180], [5, 10, 20, 100], {
                     from: deployerAccount
                 }));
         });
@@ -147,6 +168,12 @@ contract('PMA Vault Contract', async (accounts) => {
                 from: owner
             });
             now = await web3.eth.getBlock(web3.eth.blockNumber).timestamp;
+        });
+
+        it('PMA Vault should have the amount of tokens withdrawn set to zero', async () => {
+            const amountOfTokensWithdrawn = await vault.amountOfTokensWithdrawn();
+
+            assert.equal(amountOfTokensWithdrawn, 0);
         });
 
         it('PMA Vault should have the next unlocked time set', async () => {
@@ -195,6 +222,37 @@ contract('PMA Vault Contract', async (accounts) => {
                 from: owner
             }));
         });
+
+        it('should emit a "LogNextUnlockTimestamp" event', async () => {
+            const tokens = MINTED_TOKENS * ONE_ETHER;
+            await token.mint(vault.address, tokens, {
+                from: deployerAccount
+            });
+            const constructLockedDownSchedule = await vault.constructLockedDownSchedule({
+                from: owner
+            });
+            now = await web3.eth.getBlock(web3.eth.blockNumber).timestamp;
+
+            const logs = constructLockedDownSchedule.logs;
+            assert.equal(logs.length, 2);
+            assert.equal(logs[0].event, 'LogNextUnlockTimestamp');
+            logs[0].args.nextUnlockedTimestamp.should.be.bignumber.equal(now + 10 * DAY);
+        });
+
+        it('should emit a "LogTokensAllowedForWithdrawal" event', async () => {
+            const tokens = MINTED_TOKENS * ONE_ETHER;
+            await token.mint(vault.address, tokens, {
+                from: deployerAccount
+            });
+            const constructLockedDownSchedule = await vault.constructLockedDownSchedule({
+                from: owner
+            });
+
+            const logs = constructLockedDownSchedule.logs;
+            assert.equal(logs.length, 2);
+            assert.equal(logs[1].event, 'LogTokensAllowedForWithdrawal');
+            logs[1].args.tokensAllowedForWithdrawal.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.05);
+        });
     });
 
     describe('Set Next Withdrawal Details', () => {
@@ -224,7 +282,7 @@ contract('PMA Vault Contract', async (accounts) => {
         });
 
         it('should revert if executed when the vault is open 1 second before it closes', async () => {
-            await timeTravel(12 * DAY - 2);
+            await timeTravel(12 * DAY - 5);
             await assertRevert(vault.setNextWithdrawalDetails({
                 from: owner
             }));
@@ -242,7 +300,7 @@ contract('PMA Vault Contract', async (accounts) => {
             amountOfTokensAllowedForWithdrawal.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.1);
         });
 
-        it('should revert if executed when the vault is open - once it is open', async () => {
+        it('should revert if executed when the vault is unlocked', async () => {
             await timeTravel(10 * DAY);
             await assertRevert(vault.setNextWithdrawalDetails({
                 from: owner
@@ -265,13 +323,13 @@ contract('PMA Vault Contract', async (accounts) => {
             logs[0].args.nextUnlockedTimestamp.should.be.bignumber.equal(now + 10 * DAY);
         });
 
-        it('should emit a "LogNTokensAllowedForWithdrawal" event', async () => {
+        it('should emit a "LogTokensAllowedForWithdrawal" event', async () => {
             const setNextWithdrawalDetails = await vault.setNextWithdrawalDetails({
                 from: owner
             });
             const logs = setNextWithdrawalDetails.logs;
             assert.equal(logs.length, 2);
-            assert.equal(logs[1].event, 'LogNTokensAllowedForWithdrawal');
+            assert.equal(logs[1].event, 'LogTokensAllowedForWithdrawal');
             logs[1].args.tokensAllowedForWithdrawal.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.05);
         });
     });
@@ -302,40 +360,87 @@ contract('PMA Vault Contract', async (accounts) => {
             });
             await timeTravel(1 * DAY);
 
-            const tokensToWithdraw = MINTED_TOKENS * ONE_ETHER * 0.2;
+            // ALLOWED TOKENS - ONE ETHER IN TOKENS ==> ONE ETHER IS STILL AVAILABLE
+            const tokensToWithdraw = (MINTED_TOKENS * ONE_ETHER * 0.2) - ONE_ETHER;
 
             await vault.withdrawTokens(tokensToWithdraw, {
                 from: owner
             });
             const ownerBalance = await token.balanceOf(owner);
+            const availableTokensForWithdrawal = await vault.amountOfTokensAllowedForWithdrawal();
+            const amountOfTokensWithdrawn = await vault.amountOfTokensWithdrawn();
 
-            ownerBalance.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.2);
+            amountOfTokensWithdrawn.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.2 - ONE_ETHER);
+            ownerBalance.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.2 - ONE_ETHER);
+            availableTokensForWithdrawal.should.be.bignumber.equal(ONE_ETHER);
         });
 
         it('should allow for the onwer to withraw tokens during consecutive unlocked periods', async () => {
+            await timeTravel(29 * DAY);
+            await vault.setNextWithdrawalDetails({
+                from: owner
+            });
+            await timeTravel(1 * DAY);
+
+            // ON DAY 30 20% CAN BE WITHDRAWN
+            const tokensToWithdraw = MINTED_TOKENS * ONE_ETHER * 0.2;
+            await vault.withdrawTokens(tokensToWithdraw, {
+                from: owner
+            });
+            await timeTravel(5 * DAY);
+            // SETTING THE NEXT WITHDRAWN DETAILS AFTER VAULT IS LOCKED AGAIN
+            await vault.setNextWithdrawalDetails({
+                from: owner
+            });
+            await timeTravel(55 * DAY);
+
+            // ON DAY 90 50% CAN BE WITHDRAWN --> 30% since 20% has already been withdrawn
+            await vault.withdrawTokens(MINTED_TOKENS * ONE_ETHER * 0.2, {
+                from: owner
+            });
+
+            let ownerBalance = await token.balanceOf(owner);
+            let amountOfTokensWithdrawn = await vault.amountOfTokensWithdrawn();
+            let availableTokensForWithdrawal = await vault.amountOfTokensAllowedForWithdrawal();
+            // OWNER HAS WITHDRAWN 40%
+            ownerBalance.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.4);
+            amountOfTokensWithdrawn.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.4);
+            availableTokensForWithdrawal.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.1);
+        });
+
+        it('should allow for the onwer to withraw all tokens during consecutive unlocked periods', async () => {
             await timeTravel(89 * DAY);
             await vault.setNextWithdrawalDetails({
                 from: owner
             });
             await timeTravel(1 * DAY);
 
+            // ON DAY 90 50% CAN BE WITHDRAWN
             const tokensToWithdraw = MINTED_TOKENS * ONE_ETHER * 0.5;
 
             await vault.withdrawTokens(tokensToWithdraw, {
                 from: owner
             });
-            await timeTravel(2 * DAY);
+            await timeTravel(5 * DAY);
+            // SETTING THE NEXT WITHDRAWN DETAILS AFTER VAULT IS LOCKED AGAIN
             await vault.setNextWithdrawalDetails({
                 from: owner
             });
-            await timeTravel(88 * DAY);
-            await vault.withdrawTokens(tokensToWithdraw / 2, {
+            await timeTravel(85 * DAY);
+
+            // ON DAY 180 100% CAN BE WITHDRAWN ==> OTHER 50%
+            await vault.withdrawTokens(MINTED_TOKENS * ONE_ETHER * 0.5, {
                 from: owner
             });
 
-            const ownerBalance = await token.balanceOf(owner);
-
-            ownerBalance.should.be.bignumber.equal(tokensToWithdraw + tokensToWithdraw / 2);
+            let ownerBalance = await token.balanceOf(owner);
+            let amountOfTokensWithdrawn = await vault.amountOfTokensWithdrawn();
+            let availableTokensForWithdrawal = await vault.amountOfTokensAllowedForWithdrawal();
+            // OWNER HAS WITHDRAWN 100%
+            ownerBalance.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER);
+            amountOfTokensWithdrawn.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER);
+            // THERE ARE NO TOKENS IN THE VAULT
+            availableTokensForWithdrawal.should.be.bignumber.equal(0);
         });
 
         it('should fail when the owner tries to withdraw higher amount than the one allowed', async () => {
@@ -348,6 +453,23 @@ contract('PMA Vault Contract', async (accounts) => {
             const tokensToWithdraw = MINTED_TOKENS * ONE_ETHER * 0.2 + 100000;
 
             await assertRevert(vault.withdrawTokens(tokensToWithdraw, {
+                from: owner
+            }));
+        });
+
+        it('should fail when the owner tries to withdraw higher amount than the one allowed after withdrawing already', async () => {
+            await timeTravel(29 * DAY);
+            await vault.setNextWithdrawalDetails({
+                from: owner
+            });
+            await timeTravel(1 * DAY);
+
+            const tokensToWithdraw = MINTED_TOKENS * ONE_ETHER * 0.2 / 2;
+            await vault.withdrawTokens(tokensToWithdraw, {
+                from: owner
+            })
+
+            await assertRevert(vault.withdrawTokens(tokensToWithdraw + 100000, {
                 from: owner
             }));
         });
@@ -368,6 +490,28 @@ contract('PMA Vault Contract', async (accounts) => {
             await assertRevert(vault.withdrawTokens(MINTED_TOKENS * ONE_ETHER * 0.2, {
                 from: deployerAccount
             }));
+        });
+
+        it('should emit a "LogWithdraw" event', async () => {
+            await timeTravel(10 * DAY);
+            const withdrawTokens = await vault.withdrawTokens(MINTED_TOKENS * ONE_ETHER * 0.05 / 2, {
+                from: owner
+            });
+            const logs = withdrawTokens.logs;
+            assert.equal(logs.length, 2);
+            assert.equal(logs[0].event, 'LogWithdraw');
+            logs[0].args.amount.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.05 / 2);
+        });
+
+        it('should emit a "LogTokensAllowedForWithdrawal" event', async () => {
+            await timeTravel(10 * DAY);
+            const withdrawTokens = await vault.withdrawTokens(MINTED_TOKENS * ONE_ETHER * 0.05 / 2, {
+                from: owner
+            });
+            const logs = withdrawTokens.logs;
+            assert.equal(logs.length, 2);
+            assert.equal(logs[1].event, 'LogTokensAllowedForWithdrawal');
+            logs[1].args.tokensAllowedForWithdrawal.should.be.bignumber.equal(MINTED_TOKENS * ONE_ETHER * 0.05 / 2);
         });
     });
 });

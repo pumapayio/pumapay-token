@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity 0.4.24;
 
 import "./PumaPayToken.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -14,7 +14,7 @@ contract PumaPayVault is Ownable {
     /// =================================================================================================================
     event LogWithdraw(uint256 amount);
     event LogNextUnlockTimestamp(uint256 nextUnlockedTimestamp);
-    event LogNTokensAllowedForWithdrawal(uint256 tokensAllowedForWithdrawal);
+    event LogTokensAllowedForWithdrawal(uint256 tokensAllowedForWithdrawal);
 
     /// =================================================================================================================
     ///                                      Constants
@@ -24,15 +24,14 @@ contract PumaPayVault is Ownable {
     /// =================================================================================================================
     ///                                      Members
     /// =================================================================================================================
-    
-    address public owner;
     uint256 public nextUnlockedTimestamp;
     uint256 public amountOfTokensAllowedForWithdrawal;
+    uint256 public amountOfTokensWithdrawn;
     bool public lockedScheduleConstructed;
     uint256[] public intervals;
     uint256[] public percentages;
     
-    PumaPayToken token;
+    PumaPayToken public token;
 
     struct LockScheduleDetails {
         uint256 unlockStartTime;
@@ -40,14 +39,13 @@ contract PumaPayVault is Ownable {
     }
 
     LockScheduleDetails[] public lockSchedule;
+
+    bool[] private intervalsValidationArray;
+    bool[] private percentagesValidationArray;
+
     /// =================================================================================================================
     ///                                      Modifiers
     /// =================================================================================================================
-    modifier isOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
     modifier hasTokens() {
         require(token.balanceOf(this) > 0);
         _;
@@ -74,7 +72,12 @@ contract PumaPayVault is Ownable {
     }
 
     modifier validAmountOfTokens(uint256 amount) {
-        require(token.balanceOf(this) >= amount && amountOfTokensAllowedForWithdrawal >= amount);
+        require(amountOfTokensAllowedForWithdrawal >= amount);
+        _;
+    }
+
+    modifier lastValueOfArrayIs100(uint256[] arrayOfNumbers) {
+        require(arrayOfNumbers[arrayOfNumbers.length - 1] == 100);
         _;
     }
 
@@ -99,7 +102,6 @@ contract PumaPayVault is Ownable {
     /// @param _tokenAddress Token Address.
     /// @param _intervals Intervals in days on which the vault will be unlocked.
     /// @param _percentages Percentage of the tokens held by the vault that are unlocked over the specified intervals.
-    /// IMPORTANT: percentages should always have at the end of the array 100, otherwise the tokens will be locked for ever.
     constructor(address _owner, PumaPayToken _tokenAddress, uint256[] _intervals, uint256[] _percentages) 
     public 
     validRequirements(_owner, _tokenAddress, _intervals, _percentages) {
@@ -120,28 +122,33 @@ contract PumaPayVault is Ownable {
     /// @param _amountOfTokens - number of tokens to be withrawn
     function withdrawTokens(uint256 _amountOfTokens)
         public 
-        isOwner()
+        onlyOwner()
         lockedScheduleISConstructed()
         isUnlocked()
         validAmountOfTokens(_amountOfTokens) { 
         token.transfer(owner, _amountOfTokens);
+        amountOfTokensWithdrawn = amountOfTokensWithdrawn + _amountOfTokens;
+        amountOfTokensAllowedForWithdrawal = amountOfTokensAllowedForWithdrawal.sub(_amountOfTokens);
 
         emit LogWithdraw(_amountOfTokens);
+        emit LogTokensAllowedForWithdrawal(amountOfTokensAllowedForWithdrawal);
     }
 
     /// @dev Sets the next withrawal details i.e. unclocked timestamp and amount of tokens can be executed only by the owner of the vault
     /// and only after the lock schedule has been constructed and the vault is not locked
     function setNextWithdrawalDetails() 
     public
-    isOwner()
+    onlyOwner()
     isLocked()
     lockedScheduleISConstructed() {
         for (uint i = 0; i < lockSchedule.length; i++) {
             if (lockSchedule[i].unlockStartTime > now) {
                 nextUnlockedTimestamp = lockSchedule[i].unlockStartTime;
-                amountOfTokensAllowedForWithdrawal = lockSchedule[i].unlockedAmount;
+                amountOfTokensAllowedForWithdrawal = lockSchedule[i].unlockedAmount - amountOfTokensWithdrawn;
+
                 emit LogNextUnlockTimestamp(nextUnlockedTimestamp);
-                emit LogNTokensAllowedForWithdrawal(amountOfTokensAllowedForWithdrawal);
+                emit LogTokensAllowedForWithdrawal(amountOfTokensAllowedForWithdrawal);
+
                 return;
             }
         }
@@ -151,20 +158,24 @@ contract PumaPayVault is Ownable {
     /// can be executed only by the owner of the vault
     function constructLockedDownSchedule() 
     public 
-    isOwner()
+    onlyOwner()
     hasTokens() 
     lockedScheduleNOTConstructed() {
         for (uint i = 0; i < intervals.length; i++) {
             lockSchedule.push(
                 LockScheduleDetails({
-                    unlockStartTime: now.add(intervals[i].mul(24).mul(60).mul(60)),
-                    unlockedAmount: token.balanceOf(this).mul(percentages[i]).div(100)
+                    unlockStartTime: now + (intervals[i] * 24 * 60 * 60),
+                    unlockedAmount: token.balanceOf(this) * percentages[i] / 100
                 })
             );
         }
+        amountOfTokensWithdrawn = 0;
         nextUnlockedTimestamp = lockSchedule[0].unlockStartTime;
         amountOfTokensAllowedForWithdrawal = lockSchedule[0].unlockedAmount;
         lockedScheduleConstructed = true;
+
+        emit LogNextUnlockTimestamp(nextUnlockedTimestamp);
+        emit LogTokensAllowedForWithdrawal(amountOfTokensAllowedForWithdrawal);
     }
 
     function vaultIsUnlocked()
@@ -180,28 +191,36 @@ contract PumaPayVault is Ownable {
 
     /// Checks if the intervals specified in contract creation are valid
     /// Valid means that each interval should be higher than the previous one and none should be zero
+    /// @param _intervals - array of intervals initiating the contract
     function validIntervals(uint256[] _intervals) 
     internal 
     pure 
     returns(bool) {
+        uint256 previousInterval = 0;
         for (uint i = 0; i < _intervals.length; i++) {
-            if (_intervals[i] <= 0) {
+            if (_intervals[i] <= 0 || _intervals[i] < previousInterval) {
                 return false;
             }
+            previousInterval = _intervals[i];
         }
         return true;
     }
 
     /// Checks if the percentages specified in contract creation are valid
     /// Valid means that each percentages should be higher than the previous one and none should be zero
+    /// Also the last value of the array should be 100, otherwise there will be locked tokens with no way of retrieving them
+    /// @param _percentages - array of percentages initiating the contract
     function validPercentages(uint256[] _percentages) 
     internal 
-    pure 
+    pure
+    lastValueOfArrayIs100(_percentages)
     returns(bool) {
+        uint256 previousPercentage = 0;
         for (uint i = 0; i < _percentages.length; i++) {
-            if (_percentages[i] <= 0) {
+            if (_percentages[i] <= 0 || _percentages[i] < previousPercentage) {
                 return false;
             }
+            previousPercentage = _percentages[i];
         }
         return true;
     }
