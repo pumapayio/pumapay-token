@@ -40,9 +40,6 @@ contract PumaPayVault is Ownable {
 
     LockScheduleDetails[] public lockSchedule;
 
-    bool[] private intervalsValidationArray;
-    bool[] private percentagesValidationArray;
-
     /// =================================================================================================================
     ///                                      Modifiers
     /// =================================================================================================================
