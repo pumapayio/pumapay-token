@@ -6,3 +6,4 @@ coverage.json
 unified
 /tmp*
 /test-*
+.idea/

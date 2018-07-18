@@ -21,7 +21,7 @@ contract("PumaPayToken", async (accounts) => {
 		it("Token name should be PumaPayToken", async () => {
 			let tokenName = await token.name.call();
 
-			assert.equal(tokenName.toString(), "PumaPayToken");
+			assert.equal(tokenName.toString(), "PumaPay");
 		});
 		it("Token symbol should be PMA", async () => {
 			let symbol = await token.symbol.call();

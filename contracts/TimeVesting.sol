@@ -16,16 +16,15 @@ contract TimeVesting is Ownable {
 
     event LogWithdraw(uint256 amount);
     event LogInitialBalanceSet(uint256 amount);
-    event LogVestingDetails(uint256 nextVestingPeriod, uint256 vestingUlockedPercentage);
+    event LogVestingDetails(uint256 nextVestingPeriod, uint256 vestingUnlockedPercentage);
 
     /// =================================================================================================================
     ///                                      Members
     /// =================================================================================================================
     
     uint256 public unlockPeriodInDays;
-    uint256 public unlockPercetage;
-    uint256 public vestingUlockedPercentage;
-    uint256 public vestingUnlockedAmount;
+    uint256 public unlockPercentage;
+    uint256 public vestingUnlockedPercentage;
     uint256 public nextVestingPeriod;
     uint256 public withdrawnTokens;
     uint256 public initialTokenBalance;
@@ -56,18 +55,11 @@ contract TimeVesting is Ownable {
         _;
     }
 
-    modifier validVestingUlockedPercentage() {
-        require(100 > vestingUlockedPercentage);
+    modifier validvestingUnlockedPercentage() {
+        require(100 > vestingUnlockedPercentage);
         _;
     }
 
-    modifier validAmountOfTokens(uint256 amount) {
-        require(
-            token.balanceOf(this) >= amount && 
-            withdrawnTokens <= token.balanceOf(this).mul(vestingUlockedPercentage).div(100)
-        );
-        _;
-    }
     modifier validRequirements(PumaPayToken _token, address _owner, uint256 _unlockPeriodInDays, uint256 _unlockPercentage) {
         require(
             _token != address(0)
@@ -83,7 +75,7 @@ contract TimeVesting is Ownable {
     /// =================================================================================================================
     
     /// @dev Contract constructor sets owner of the vault, the intervals on which the vault will be unlocked.
-    /// and the percentages of the vault that will be unlocked for the certain intervals.
+    ///      and the percentages of the vault that will be unlocked for the certain intervals.
     /// @param _token Token Address.
     /// @param _owner Address which can withdraw tokens from the contract.
     /// @param _unlockPeriodInDays How often (in days) the amount of tokens that the owner can withrdaw will increase.
@@ -94,9 +86,9 @@ contract TimeVesting is Ownable {
         token = _token;
         owner = _owner;
         unlockPeriodInDays = _unlockPeriodInDays;
-        unlockPercetage = _unlockPercentage; 
-        nextVestingPeriod = now.add(_unlockPeriodInDays.mul(24).mul(60).mul(60));
-        vestingUlockedPercentage = _unlockPercentage;
+        unlockPercentage = _unlockPercentage; 
+        nextVestingPeriod = now + _unlockPeriodInDays * 24 * 60 * 60;
+        vestingUnlockedPercentage = _unlockPercentage;
         withdrawnTokens = 0;
         initialTokenBalance = 0;
     }
@@ -115,10 +107,11 @@ contract TimeVesting is Ownable {
     onlyOwner()
     hasTokens()
     initialTokenBalanceSet() {
-        token.transfer(owner, initialTokenBalance.mul(vestingUlockedPercentage).div(100).sub(withdrawnTokens));
-        withdrawnTokens = withdrawnTokens.add(initialTokenBalance.mul(vestingUlockedPercentage).div(100).sub(withdrawnTokens));
-        
-        emit LogWithdraw(initialTokenBalance.mul(vestingUlockedPercentage).div(100));
+        uint256 tokensToBeWithdrawn = (initialTokenBalance * vestingUnlockedPercentage / 100) - withdrawnTokens;
+        withdrawnTokens = withdrawnTokens + tokensToBeWithdrawn;
+        token.transfer(owner, tokensToBeWithdrawn);
+
+        emit LogWithdraw(tokensToBeWithdrawn);
     }
 
     /// @dev Allows the owner to update the vesting details.
@@ -131,11 +124,11 @@ contract TimeVesting is Ownable {
     hasTokens()
     validUpdateTime()
     initialTokenBalanceSet()
-    validVestingUlockedPercentage() {
-        vestingUlockedPercentage = vestingUlockedPercentage.add(unlockPercetage);
-        nextVestingPeriod = nextVestingPeriod.add(unlockPeriodInDays.mul(24).mul(60).mul(60));
+    validvestingUnlockedPercentage() {
+        vestingUnlockedPercentage = vestingUnlockedPercentage.add(unlockPercentage);
+        nextVestingPeriod = nextVestingPeriod + unlockPeriodInDays * 24 * 60 * 60;
         
-        emit LogVestingDetails(nextVestingPeriod, vestingUlockedPercentage);
+        emit LogVestingDetails(nextVestingPeriod, vestingUnlockedPercentage);
     }
 
     /// @dev Sets the initial token balance.

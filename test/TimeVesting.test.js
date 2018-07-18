@@ -57,7 +57,7 @@ contract('Time Vesting Contract', async (accounts) => {
         });
 
         it('Time Vesting Contract unlock percentage should be the number of percentage that was set during deployment of the contract', async () => {
-            const contractUnlockPercetage = await vestingContract.unlockPercetage();
+            const contractUnlockPercetage = await vestingContract.unlockPercentage();
 
             contractUnlockPercetage.should.be.bignumber.equal(20);
         });
@@ -70,7 +70,7 @@ contract('Time Vesting Contract', async (accounts) => {
         });
 
         it('Time Vesting Contract Vesting unlock percentage should be the number of percentage that was set during deployment of the contract', async () => {
-            const contractVestingUlockedPercentage = await vestingContract.vestingUlockedPercentage();
+            const contractVestingUlockedPercentage = await vestingContract.vestingUnlockedPercentage();
 
             contractVestingUlockedPercentage.should.be.bignumber.equal(20);
         });
@@ -212,7 +212,7 @@ contract('Time Vesting Contract', async (accounts) => {
                 from: owner
             });
 
-            const unlockedPercentage = await vestingContract.vestingUlockedPercentage();
+            const unlockedPercentage = await vestingContract.vestingUnlockedPercentage();
 
             unlockedPercentage.should.be.bignumber.equal(40);
         });
@@ -252,7 +252,7 @@ contract('Time Vesting Contract', async (accounts) => {
             await vestingContract.updateVestingDetails({
                 from: owner
             });
-            const unlockedPercentage = await vestingContract.vestingUlockedPercentage();
+            const unlockedPercentage = await vestingContract.vestingUnlockedPercentage();
 
             unlockedPercentage.should.be.bignumber.equal(100);
         });
@@ -318,7 +318,7 @@ contract('Time Vesting Contract', async (accounts) => {
             const logs = updateVestingDetails.logs;
             assert.equal(logs.length, 1);
             assert.equal(logs[0].event, 'LogVestingDetails');
-            logs[0].args.vestingUlockedPercentage.should.be.bignumber.equal(40);
+            logs[0].args.vestingUnlockedPercentage.should.be.bignumber.equal(40);
         });
     });
 
@@ -494,7 +494,7 @@ contract('Time Vesting Contract', async (accounts) => {
             });
         });
 
-        it('should fail when the ititial token balance is not set', async () => {
+        it('should fail when the initial token balance is not set', async () => {
             await assertRevert(failedVestingContract.withdrawAllowedAmount({
                 from: owner
             }));
