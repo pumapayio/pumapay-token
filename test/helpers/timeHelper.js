@@ -1,16 +1,30 @@
-const jsonrpc = '2.0'
-const id = 0
-const send = (method, params = []) =>
-    web3.currentProvider.send({
-        id,
-        jsonrpc,
-        method,
-        params
+const timeTravel = function (time) {
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: "2.0",
+            method: "evm_increaseTime",
+            params: [time], // 86400 is num seconds in day
+            id: new Date().getTime()
+        }, (err, result) => {
+            if(err){ return reject(err) }
+            return resolve(result)
+        });
+    })
+};
+
+const currentBlockTime = async function () {
+    const p = new Promise((resolve, reject) => {
+        web3.eth.getBlock("latest", (err, res) => {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(res.timestamp);
+        });
     });
+    return p;
+};
 
-const timeTravel = async seconds => {
-    await send('evm_increaseTime', [seconds])
-    await send('evm_mine')
-}
-
-module.exports = timeTravel
+module.exports = {
+    timeTravel,
+    currentBlockTime
+};
