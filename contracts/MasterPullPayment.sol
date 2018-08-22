@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity 0.4.24;
 
 import "./PumaPayToken.sol";
 import "../node_modules/openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -324,7 +324,7 @@ contract MasterPullPayment is Ownable {
     /// @param r - R output of ECDSA signature.
     /// @param s - S output of ECDSA signature.
     /// @param _client - client address that is linked to this pull payment.
-    /// @param _beneficiary - merchant address that is linked to this pull payment.
+    /// @param _beneficiary - address that is allowed to execute this pull payment.
     /// @param _pullPayment - pull payment to be validated.
     /// @return bool - if the v, r, s params with the hashed params match the signatory address
     function isValidRegistration(
