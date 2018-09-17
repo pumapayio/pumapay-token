@@ -418,10 +418,12 @@ contract PumaPayToken is MintableToken {
 /// @title PumaPay Pull Payment - Contract that facilitates our pull payment protocol
 /// @author PumaPay Dev Team - <developers@pumapay.io>
 contract PumaPayPullPayment is Ownable {
+    
     using SafeMath for uint256;
-    /// =================================================================================================================
+
+    /// ===============================================================================================================
     ///                                      Events
-    /// =================================================================================================================
+    /// ===============================================================================================================
     
     event LogExecutorAdded(address executor);
     event LogExecutorRemoved(address executor);
@@ -430,17 +432,18 @@ contract PumaPayPullPayment is Ownable {
     event LogPullPaymentExecuted(address clientAddress, address beneficiaryAddress, string paymentID);
     event LogSetExchangeRate(string currency, uint256 exchangeRate);
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Constants
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
-    uint256 constant private DECIMAL_FIXER = 10000000000; // 1^10 - This transforms the Rate from decimals to uint256
-    uint256 constant private FIAT_TO_CENT_FIXER = 100;    // Fiat currencies have 100 cents in 1 basic monetary unit.
-    uint256 constant private ONE_ETHER = 1 ether;         // PumaPay token has 18 decimals - same as one ETHER
-    uint256 constant private MINIMUM_AMOUN_OF_ETH_FOR_OPARATORS = 0.01 ether; // minimum amount of ETHER the owner/executor should have 
-    /// =================================================================================================================
+    uint256 constant private DECIMAL_FIXER = 10000000000; /// 1e^10 - This transforms the Rate from decimals to uint256
+    uint256 constant private FIAT_TO_CENT_FIXER = 100;    /// Fiat currencies have 100 cents in 1 basic monetary unit.
+    uint256 constant private ONE_ETHER = 1 ether;         /// PumaPay token has 18 decimals - same as one ETHER
+    uint256 constant private MINIMUM_AMOUN_OF_ETH_FOR_OPARATORS = 0.01 ether; /// minimum amount of ETHER the owner/executor should have 
+    
+    /// ===============================================================================================================
     ///                                      Members
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
     PumaPayToken public token;
 
@@ -462,9 +465,9 @@ contract PumaPayPullPayment is Ownable {
         uint256 cancelTimestamp;                /// timestamp the payment was cancelled
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Modifiers
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
     modifier isExecutor() {
          require(executors[msg.sender]);
@@ -522,9 +525,9 @@ contract PumaPayPullPayment is Ownable {
         _;
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Constructor
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
     /// @dev Contract constructor - sets the token address that the contract facilitates.
     /// @param _token Token Address.
@@ -539,9 +542,9 @@ contract PumaPayPullPayment is Ownable {
     function () external payable {
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Public Functions - Owner Only
-    /// =================================================================================================================
+    /// ===============================================================================================================
     
     /// @dev Adds a new executor. - can be executed only by the onwer. 
     /// When adding a new executor 1 ETH is tranferred to allow the executor to pay for gas.
@@ -553,11 +556,12 @@ contract PumaPayPullPayment is Ownable {
     isValidAddress(_executor)
     executorDoesNotExists(_executor)
     {
+        _executor.transfer(1 ether);
+        executors[_executor] = true;
+
         if (isFundingNeeded(owner)) {
             owner.transfer(1 ether);
         }
-        _executor.transfer(1 ether);
-        executors[_executor] = true;
         
         emit LogExecutorAdded(_executor);
     }
@@ -597,12 +601,12 @@ contract PumaPayPullPayment is Ownable {
         return true;
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Public Functions - Executors Only
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
-    /// @dev Registers a new pull payment to the Master Pull Payment Contract - The registration can be executed only by one of the executors of the Master Pull Payment Contract
-    /// and the Master Pull Payment Contract checks that the pull payment has been singed by the signatory of the account.
+    /// @dev Registers a new pull payment to the PumaPay Pull Payment Contract - The registration can be executed only by one of the executors of the PumaPay Pull Payment Contract
+    /// and the PumaPay Pull Payment Contract checks that the pull payment has been singed by the client of the account.
     /// The balance of the executor (msg.sender) is checked and if funding is needed 1 ETH is transferred.
     /// Emits 'LogPaymentRegistered' with client address, beneficiary address and paymentID.
     /// @param v - recovery ID of the ETH signature. - https://github.com/ethereum/EIPs/issues/155
@@ -654,7 +658,7 @@ contract PumaPayPullPayment is Ownable {
         pullPayments[_client][_beneficiary].startTimestamp = _startTimestamp;
         pullPayments[_client][_beneficiary].numberOfPayments = _numberOfPayments;
 
-        if (!isValidRegistration(v, r, s, _client, _beneficiary, pullPayments[_client][_beneficiary])) revert();
+        require(isValidRegistration(v, r, s, _client, _beneficiary, pullPayments[_client][_beneficiary]));
 
         pullPayments[_client][_beneficiary].merchantID = _merchantID;
         pullPayments[_client][_beneficiary].paymentID = _paymentID;
@@ -669,10 +673,9 @@ contract PumaPayPullPayment is Ownable {
         emit LogPaymentRegistered(_client, _beneficiary, _paymentID);
     }
 
-    /// @dev Deletes a pull payment for a beneficiary - The deletion needs can be executed only by one of the executors of the Master Pull Payment Contract
-    /// and the Master Pull Payment Contract checks that the beneficiary and the paymentID have been singed by the signatory of the account.
-    /// This method deletes the pull payment from the pull payments array for this beneficiary specified and
-    /// also deletes the beneficiary from the beneficiaries array.
+    /// @dev Deletes a pull payment for a beneficiary - The deletion needs can be executed only by one of the executors of the PumaPay Pull Payment Contract
+    /// and the PumaPay Pull Payment Contract checks that the beneficiary and the paymentID have been singed by the client of the account.
+    /// This method sets the cancellation of the pull payment in the pull payments array for this beneficiary specified.
     /// The balance of the executor (msg.sender) is checked and if funding is needed 1 ETH is transferred.
     /// Emits 'LogPaymentCancelled' with beneficiary address and paymentID.
     /// @param v - recovery ID of the ETH signature. - https://github.com/ethereum/EIPs/issues/155
@@ -695,7 +698,8 @@ contract PumaPayPullPayment is Ownable {
     paymentNotCancelled(_client, _beneficiary)
     isValidDeletionRequest(_paymentID, _client, _beneficiary)
     {   
-        if (!isValidDeletion(v, r, s, _paymentID, _client, _beneficiary)) revert();
+        require(isValidDeletion(v, r, s, _paymentID, _client, _beneficiary));
+
         pullPayments[_client][_beneficiary].cancelTimestamp = now;
 
         if (isFundingNeeded(msg.sender)) {
@@ -705,9 +709,9 @@ contract PumaPayPullPayment is Ownable {
         emit LogPaymentCancelled(_client, _beneficiary, _paymentID);
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Public Functions
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
     /// @dev Executes a pull payment for the msg.sender - The pull payment should exist and the payment request
     /// should be valid in terms of when it can be executed.
@@ -739,9 +743,8 @@ contract PumaPayPullPayment is Ownable {
             pullPayments[_client][msg.sender].nextPaymentTimestamp = pullPayments[_client][msg.sender].nextPaymentTimestamp + pullPayments[_client][msg.sender].frequency;
             pullPayments[_client][msg.sender].numberOfPayments = pullPayments[_client][msg.sender].numberOfPayments - 1;
         }
-        token.transferFrom(_client, msg.sender, amountInPMA);
-
         pullPayments[_client][msg.sender].lastPaymentTimestamp = now;
+        token.transferFrom(_client, msg.sender, amountInPMA);
 
         emit LogPullPaymentExecuted(_client, msg.sender, pullPayments[_client][msg.sender].paymentID);
     }
@@ -750,12 +753,12 @@ contract PumaPayPullPayment is Ownable {
         return exchangeRates[_currency];
     }
 
-    /// =================================================================================================================
+    /// ===============================================================================================================
     ///                                      Internal Functions
-    /// =================================================================================================================
+    /// ===============================================================================================================
 
-    /// @dev Calculates the PMA Rate for the fiat currency specified - The rate is being retrieved by the PumaPayOracle
-    /// for the currency specified. The Oracle is being updated every minute for each different currency the our system supports.
+    /// @dev Calculates the PMA Rate for the fiat currency specified - The rate is set every 10 minutes by our PMA server
+    /// for the currencies specified in the smart contract. 
     /// @param _fiatAmountInCents - payment amount in fiat CENTS so that is always integer
     /// @param _currency - currency in which the payment needs to take place
     /// RATE CALCULATION EXAMPLE
@@ -771,18 +774,18 @@ contract PumaPayPullPayment is Ownable {
     internal
     view
     returns (uint256) {
-        return ONE_ETHER.mul(DECIMAL_FIXER).mul(_fiatAmountInCents).div(exchangeRates[_currency]).div(FIAT_TO_CENT_FIXER);
+        return ((ONE_ETHER * DECIMAL_FIXER * _fiatAmountInCents) / exchangeRates[_currency]) / FIAT_TO_CENT_FIXER;
     }
 
-    /// @dev Checks if a deletion request is valid by comparing the v, r, s params
-    /// and the hashed params with the signatory address.
+    /// @dev Checks if a registration request is valid by comparing the v, r, s params
+    /// and the hashed params with the client address.
     /// @param v - recovery ID of the ETH signature. - https://github.com/ethereum/EIPs/issues/155
     /// @param r - R output of ECDSA signature.
     /// @param s - S output of ECDSA signature.
     /// @param _client - client address that is linked to this pull payment.
     /// @param _beneficiary - address that is allowed to execute this pull payment.
     /// @param _pullPayment - pull payment to be validated.
-    /// @return bool - if the v, r, s params with the hashed params match the signatory address
+    /// @return bool - if the v, r, s params with the hashed params match the client address
     function isValidRegistration(
         uint8 v,
         bytes32 r,
@@ -811,14 +814,14 @@ contract PumaPayPullPayment is Ownable {
     }
 
     /// @dev Checks if a deletion request is valid by comparing the v, r, s params
-    /// and the hashed params with the signatory address.
+    /// and the hashed params with the client address.
     /// @param v - recovery ID of the ETH signature. - https://github.com/ethereum/EIPs/issues/155
     /// @param r - R output of ECDSA signature.
     /// @param s - S output of ECDSA signature.
     /// @param _paymentID - ID of the payment.
     /// @param _client - client address that is linked to this pull payment.
     /// @param _beneficiary - address that is allowed to execute this pull payment.
-    /// @return bool - if the v, r, s params with the hashed params match the signatory address
+    /// @return bool - if the v, r, s params with the hashed params match the client address
     function isValidDeletion(
         uint8 v,
         bytes32 r,
