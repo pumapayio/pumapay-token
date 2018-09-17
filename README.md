@@ -21,6 +21,7 @@ Our Pull Payment Protocol currently supports a variaty of payments models such a
 * Recurring Pull Payment with initial payment and trial period  
 The first version of our protocol has a semi-decentralized approach in order to reduced the gas fees that are involved with setting the PMA/Fiat rates on the blockchain and eliminate the customer costs for registering and cancelling pull payments, which are currently taken care of by PumaPay through the smart contract.  
 In order for the smart contract to operate correctly, it requires that the smart contract holds ETH which are used for funding the owner address and the executors. 
+The smart contract will be monitored and once its balance drops below 2 ETH it will be funded with more ETH.
 ### PullPayment Contract 
 ##### Contract constructor
 Sets the token address that the contract facilitates.
@@ -42,14 +43,16 @@ The owner (only one) of the smart contract is responsible for:
 1. Setting the PMA/Fiat rates `function setRate(string _currency, uint256 _rate)`
 2. Add executors `function addExecutor(address _executor)`
 3. Remove executor `function removeExecutor(address _executor)`  
-On each function related with setting the rate or adding/removing executors the balance of the owner is checked and if the balance is lower than 0.01 ETH then 1 more ETH are sent to the owner address in order to pay for the gas fees related with those transactions.
+On each function related with setting the rate or adding/removing executors the balance of the owner is checked and if the balance is lower than 0.01 ETH then 1 more ETH are sent to the owner address in order to pay for the gas fees related with those transactions.  
+The owner is an address owned by the association governing the smart contract.
 ```
 if (isFundingNeeded(owner)) {
     owner.transfer(1 ether);
 }
 ```
 ##### Executors
-The `PumaPayPullPayment` contract can have multiple executors. Each executor is allowed to register or cancel a pull payment on behalf of a customer. The curstomer should sign the pull payment details using `keccak256` through the wallet and on registration/cancellation the signature parameters `(v, r, s)` of the signed pull payment are used to verify that the customer address was indeed the one which requested the registration/cancellation. Similarily to the owner, on registration/cancellation function the balance of the executor is checked and if is lower than 0.01 ETH 1 more ETH is sent from the smart contract to the executor to allow for registration/cancellation of pull payments.
+The `PumaPayPullPayment` contract can have multiple executors. Each executor is allowed to register or cancel a pull payment on behalf of a customer. The curstomer should sign the pull payment details using `keccak256` through the wallet and on registration/cancellation the signature parameters `(v, r, s)` of the signed pull payment are used to verify that the customer address was indeed the one which requested the registration/cancellation. Similarily to the owner, on registration/cancellation function the balance of the executor is checked and if is lower than 0.01 ETH 1 more ETH is sent from the smart contract to the executor to allow for registration/cancellation of pull payments.  
+The executor(s) is an address owned by the association governing the smart contract.
 ```solidity
 mapping (address => bool) public executors;
 ```
