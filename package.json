@@ -7,7 +7,7 @@
   "scripts": {
     "test": "scripts/test.sh",
     "coverage": "scripts/coverage.sh",
-    "unify": "echo '' > ./unify/unified.sol && ./node_modules/.bin/truffle-flattener ./contracts/MasterPullPayment.sol >> ./unify/unified.sol"
+    "unify": "echo '' > ./unify/unified.sol && ./node_modules/.bin/truffle-flattener ./contracts/PumaPayPullPayment.sol >> ./unify/unified.sol"
   },
   "license": "MIT",
   "dependencies": {
