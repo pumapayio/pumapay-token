@@ -413,7 +413,7 @@ contract PumaPayToken is MintableToken {
     }
 }
 
-// File: contracts/MasterPullPayment.sol
+// File: contracts/PumaPayPullPayment.sol
 
 /// @title PumaPay Pull Payment - Contract that facilitates our pull payment protocol
 /// @author PumaPay Dev Team - <developers@pumapay.io>
