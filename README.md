@@ -11,7 +11,7 @@ Once `finishMinting()` was invoked, it can't be reversed, i.e. no new tokens can
 ETH Address: [0x846c66cf71c43f80403b51fe3906b3599d63336f](https://etherscan.io/token/0x846c66cf71c43f80403b51fe3906b3599d63336f)  
 Total Amount of Tokens: 78,042,956,829 PMA
 
-## PumaPay Pull Paymnent Protocol
+## PumaPay Pull Payment Protocol
 The PumaPay Pull Payment Protocol supports an advanced "pull" mechanism, which allows users to not only push tokens from one wallet to another but to also pull funds from other wallets after prior authorization has been given.
 Our Pull Payment Protocol currently supports a variaty of payments models such as:
 * Single Pull Payment
@@ -28,7 +28,7 @@ Sets the token address that the contract facilitates.
 ```solidity
 constructor (PumaPayToken _token)
 ```
-##### Payble
+##### Payable
 Allows the `PumaPayPullPayment` contract to receive ETH to facilitate the funding of owner/executors.
 ```solidity
 function () external payable
@@ -85,9 +85,9 @@ uint256 constant private FIAT_TO_CENT_FIXER = 100;    // Fiat currencies have 10
 uint256 constant private ONE_ETHER = 1 ether;         // PumaPay token has 18 decimals - same as one ETHER
 uint256 constant private MINIMUM_AMOUN_OF_ETH_FOR_OPARATORS = 0.01 ether; // minimum amount of ETHER the owner/executor should have 
 ```
-#### Public Functions - Onwer
+#### Public Functions - Owner
 ##### addExecutor()
-Adds an existing executor. It can be executed only by the onwer.  
+Adds an existing executor. It can be executed only by the owner.
 The balance of the owner is checked and if funding is needed 1 ETH is transferred.
 ```solididty
 function addExecutor(address _executor)
@@ -216,5 +216,6 @@ Our smart contracts have been audited by several auditing companies and blockcha
 #### PumaPay Token
 Our token was audited by [SmartDec](https://smartdec.net/) and the audit report can be found [here](./audits/PumaPay%20Token%20Security%20Audit%20-%20SmartDec.pdf).
 #### PumaPay PullPayment
-Our PullPayment Protocol has been audited by three separete auditing companies - [SmartDec](https://smartdec.net/), [ZkLabs](https://zklabs.io/) and [Hacken](https://hacken.io/) -  to ensure that the desired funcionality and the relevant security is in place on top of the elimination of any bugs and valnerabilities.  
-Audit reports will be provided soon.
+Our PullPayment Protocol has been audited by three separete auditing companies - [SmartDec](https://smartdec.net/) and [Hacken](https://hacken.io/) -  to ensure that the desired functionality
+and the relevant security is in place on top of the elimination of any bugs and vulnerabilities.
+* [Hacken Audit Report](./audits/PullPayment%20Smart%20Contract%20-%20Hacken.pdf)
