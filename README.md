@@ -219,3 +219,4 @@ Our token was audited by [SmartDec](https://smartdec.net/) and the audit report 
 Our PullPayment Protocol has been audited by three separete auditing companies - [SmartDec](https://smartdec.net/) and [Hacken](https://hacken.io/) -  to ensure that the desired functionality
 and the relevant security is in place on top of the elimination of any bugs and vulnerabilities.
 * [Hacken Audit Report](./audits/PullPayment%20Smart%20Contract%20-%20Hacken.pdf)
+* [SmartDec Audit Report](./audits/PullPayment%20Smart%20Contract%20-%SmartDec.pdf)
