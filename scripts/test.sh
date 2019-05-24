@@ -8,8 +8,8 @@ trap cleanup EXIT
 
 cleanup() {
   # Kill the ganache instance that we started (if we started one and if it's still running).
-  if [ -n "$ganache-cli" ] && ps -p $ganache-cli > /dev/null; then
-    kill -9 $ganache-cli
+  if [ -n "$ganache_pid" ] && ps -p $ganache_pid > /dev/null; then
+    kill -9 $ganache_pid
   fi
 }
 
@@ -41,10 +41,10 @@ start_ganache() {
   if [ "$SOLIDITY_COVERAGE" = true ]; then
     node_modules/.bin/testrpc-sc --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
   else
-    node_modules/.bin/ganache-cli --gasLimit 0xfffffffffff "${accounts[@]}" > /dev/null &
+    node_modules/.bin/ganache-cli --gasLimit 0xfffffffffff --port "$ganache_port" "${accounts[@]}" > /dev/null &
   fi
 
-  ganache-cli=$!
+  ganache_pid=$!
 }
 
 if ganache_running; then
@@ -61,5 +61,5 @@ if [ "$SOLIDITY_COVERAGE" = true ]; then
     cat coverage/lcov.info | node_modules/.bin/coveralls
   fi
 else
-  node_modules/.bin/truffle test "$@"
+  node_modules/.bin/truffle test "$@" --network ganache
 fi

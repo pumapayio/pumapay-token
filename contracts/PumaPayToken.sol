@@ -6,14 +6,14 @@ import "../node_modules/openzeppelin-solidity/contracts/token/ERC20/MintableToke
 /// Super is used to bypass the original function signature and include the whenNotMinting modifier.
 contract PumaPayToken is MintableToken {
 
-    string public name = "PumaPay"; 
+    string public name = "PumaPay";
     string public symbol = "PMA";
     uint8 public decimals = 18;
 
     constructor() public {
     }
 
-    /// This modifier will be used to disable all ERC20 functionalities during the minting process.
+    /// This modifier will be used to disable all ERC20 functionality during the minting process.
     modifier whenNotMinting() {
         require(mintingFinished);
         _;
