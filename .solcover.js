@@ -1,4 +1,6 @@
 module.exports = {
 	norpc: false,
-	copyPackages: ['zeppelin-solidity']
+	port: 8545,
+	testCommand: 'npm test',
+	copyPackages: ['openzeppelin-solidity']
 };

@@ -6,7 +6,7 @@
   "main": "truffle.js",
   "scripts": {
     "test": "scripts/test.sh",
-    "coverage": "scripts/coverage.sh",
+    "coverage": "scripts/test.sh true",
     "unify": "echo '' > ./unify/unified.sol && ./node_modules/.bin/truffle-flattener ./contracts/PumaPayPullPayment.sol >> ./unify/unified.sol"
   },
   "license": "MIT",

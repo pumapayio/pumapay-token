@@ -6,6 +6,8 @@ set -o errexit
 # Executes cleanup function at script exit.
 trap cleanup EXIT
 
+SOLIDITY_COVERAGE=$1
+
 cleanup() {
   # Kill the ganache instance that we started (if we started one and if it's still running).
   if [ -n "$ganache_pid" ] && ps -p $ganache_pid > /dev/null; then
@@ -13,11 +15,7 @@ cleanup() {
   fi
 }
 
-if [ "$SOLIDITY_COVERAGE" = true ]; then
-  ganache_port=8555
-else
-  ganache_port=8545
-fi
+ganache_port=8545
 
 ganache_running() {
   nc -z localhost "$ganache_port"
