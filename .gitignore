@@ -7,3 +7,4 @@ unified
 /tmp*
 /test-*
 .idea/
+allFiredEvents
