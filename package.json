@@ -13,7 +13,7 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "eth-crypto": "1.2.2",
-    "lodash": "4.17.10",
+    "lodash": "4.17.19",
     "mocha": "5.2.0",
     "moment": "2.22.2",
     "openzeppelin-solidity": "1.12.0",
