@@ -15,7 +15,7 @@
     "eth-crypto": "1.2.2",
     "lodash": "4.17.10",
     "mocha": "5.2.0",
-    "moment": "2.22.2",
+    "moment": "2.29.2",
     "openzeppelin-solidity": "1.12.0",
     "save": "2.3.2",
     "truffle": "4.1.13",
